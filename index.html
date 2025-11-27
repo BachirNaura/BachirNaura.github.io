@@ -2,49 +2,1661 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Ma Première Page HTML</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application de Formulaires d'Enquête</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+            line-height: 1.6;
         }
-        h1 {
-            color: #333;
+
+        .app-header {
+            background: linear-gradient(135deg, #0d7377 0%, #14a085 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
         }
-        .carte {
+
+        .app-header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .app-logo {
+            width: 50px;
+            height: 50px;
             background: white;
-            padding: 15px;
             border-radius: 8px;
-            width: 300px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .app-header h1 {
+            font-size: 2rem;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .app-header .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            margin-top: 0.25rem;
+        }
+
+        .app-header .author {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 2rem 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .main-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            color: white;
+            z-index: 1;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, #0b3638 0%, #06aa8c 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #1f2937;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .btn-success:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #2563eb;
+            border: 2px solid #2563eb;
+        }
+
+        .btn-secondary:hover {
+            background: #eff6ff;
+        }
+
+        .btn-icon {
+            background: transparent;
+            padding: 0.5rem;
+            color: #6b7280;
+        }
+
+        .btn-icon:hover {
+            background: #f3f4f6;
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .survey-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .survey-item {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .survey-info {
+            flex: 1;
+        }
+
+        .survey-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .survey-description {
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+        }
+
+        .survey-meta {
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+
+        .survey-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .question-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .question-header input {
+            flex: 1;
+        }
+
+        .question-header select {
+            width: 200px;
+        }
+
+        .options-input {
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            color: #6b7280;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+        }
+
+        .back-btn:hover {
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+        }
+
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .radio-label,
+        .checkbox-label-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .question-item {
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .question-label {
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th {
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        td {
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .flex-gap {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #2563eb;
+        }
+
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 350px;
+            max-height: 400px;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container canvas {
+            max-height: 350px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .question-analysis {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+        }
+
+        .question-analysis h3 {
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #0d7377 0%, #14a085 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .section-container {
+            margin-bottom: 2rem;
+        }
+
+        .section-input {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #f0fdfa;
+            border-radius: 0.5rem;
+            border: 2px dashed #0d7377;
+        }
+
+        .section-input input {
+            flex: 1;
+        }
+
+        .add-section-btn {
+            background: #0d7377;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-section-btn:hover {
+            background: #14a085;
         }
     </style>
 </head>
-
 <body>
-
-    <h1>Bienvenue sur ma page !</h1>
-
-    <p>Ceci est un petit exemple d'une page HTML avec un peu de style.</p>
-
-    <div class="carte">
-        <h2>Carte d'information</h2>
-        <p>Voici un bloc stylisé avec du CSS.</p>
+  <div class="main-header">
+            <h1>📊 SahelStats</h1>
+            <h3>Réalisé par :👨‍🔬 Dr. MAGAGI ALI Bachir</h3>
+            <p>Analyse statistique complète avec tests, ACP et clustering K-means</p>
     </div>
+    <div id="app" class="container"></div>
 
-    <h3>Liste d'exemples</h3>
-    <ul>
-        <li>Élément numéro 1</li>
-        <li>Élément numéro 2</li>
-        <li>Élément numéro 3</li>
-    </ul>
+    <script>
+        // État de l'application
+        let state = {
+            view: 'list',
+            surveys: [],
+            currentSurvey: null,
+            responses: {},
+            formData: {},
+            resultsTab: 'data' // 'data' ou 'analysis'
+        };
 
-    <p>
-        Cliquez ici pour visiter 
-        <a href="https://www.example.com" target="_blank">un site d'exemple</a>.
-    </p>
+        // Types de questions
+        const questionTypes = [
+            { value: 'text', label: 'Texte court' },
+            { value: 'textarea', label: 'Texte long' },
+            { value: 'number', label: 'Nombre' },
+            { value: 'radio', label: 'Choix unique' },
+            { value: 'checkbox', label: 'Choix multiple' },
+            { value: 'select', label: 'Liste déroulante' },
+            { value: 'date', label: 'Date' },
+            { value: 'email', label: 'Email' }
+        ];
 
+        // Initialisation
+        function init() {
+            loadData();
+            render();
+        }
+
+        // Charger les données du localStorage
+        function loadData() {
+            const savedSurveys = localStorage.getItem('surveys');
+            const savedResponses = localStorage.getItem('responses');
+            
+            if (savedSurveys) {
+                state.surveys = JSON.parse(savedSurveys);
+            }
+            if (savedResponses) {
+                state.responses = JSON.parse(savedResponses);
+            }
+        }
+
+        // Sauvegarder les données
+        function saveSurveys() {
+            localStorage.setItem('surveys', JSON.stringify(state.surveys));
+        }
+
+        function saveResponses() {
+            localStorage.setItem('responses', JSON.stringify(state.responses));
+        }
+
+        // Navigation
+        function navigateTo(view, surveyId = null) {
+            state.view = view;
+            if (surveyId) {
+                state.currentSurvey = state.surveys.find(s => s.id === surveyId);
+            }
+            state.formData = {};
+            state.resultsTab = 'data';
+            render();
+        }
+
+        // Créer une nouvelle enquête
+        function createNewSurvey() {
+            const newSurvey = {
+                id: Date.now().toString(),
+                title: 'Nouvelle enquête',
+                description: '',
+                sections: [{
+                    id: Date.now().toString(),
+                    name: 'Section par défaut',
+                    questions: []
+                }],
+                createdAt: new Date().toISOString()
+            };
+            state.currentSurvey = newSurvey;
+            state.view = 'create';
+            render();
+        }
+
+        // Ajouter une question
+        function addQuestion(sectionId) {
+            const newQuestion = {
+                id: Date.now().toString(),
+                type: 'text',
+                label: 'Question sans titre',
+                required: false,
+                options: []
+            };
+            const section = state.currentSurvey.sections.find(s => s.id === sectionId);
+            if (section) {
+                section.questions.push(newQuestion);
+                render();
+            }
+        }
+
+        // Ajouter une section
+        function addSection() {
+            const newSection = {
+                id: Date.now().toString(),
+                name: 'Nouvelle section',
+                questions: []
+            };
+            state.currentSurvey.sections.push(newSection);
+            render();
+        }
+
+        // Mettre à jour une section
+        function updateSection(sectionId, name) {
+            const section = state.currentSurvey.sections.find(s => s.id === sectionId);
+            if (section) {
+                section.name = name;
+            }
+        }
+
+        // Supprimer une section
+        function deleteSection(sectionId) {
+            if (state.currentSurvey.sections.length === 1) {
+                alert('Vous devez avoir au moins une section');
+                return;
+            }
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette section et toutes ses questions ?')) {
+                state.currentSurvey.sections = state.currentSurvey.sections.filter(s => s.id !== sectionId);
+                render();
+            }
+        }
+
+        // Mettre à jour une question
+        function updateQuestion(sectionId, questionId, field, value) {
+            const section = state.currentSurvey.sections.find(s => s.id === sectionId);
+            if (section) {
+                const question = section.questions.find(q => q.id === questionId);
+                if (question) {
+                    question[field] = value;
+                    // Ne pas re-render pour éviter de perdre le focus lors de la saisie
+                    if (field === 'type') {
+                        // Re-render uniquement si le type change (pour afficher/masquer les options)
+                        render();
+                    }
+                }
+            }
+        }
+
+        // Supprimer une question
+        function deleteQuestion(sectionId, questionId) {
+            const section = state.currentSurvey.sections.find(s => s.id === sectionId);
+            if (section) {
+                section.questions = section.questions.filter(q => q.id !== questionId);
+                render();
+            }
+        }
+
+        // Sauvegarder l'enquête
+        function saveSurvey() {
+            const existingIndex = state.surveys.findIndex(s => s.id === state.currentSurvey.id);
+            
+            if (existingIndex >= 0) {
+                state.surveys[existingIndex] = state.currentSurvey;
+            } else {
+                state.surveys.push(state.currentSurvey);
+            }
+            
+            saveSurveys();
+            navigateTo('list');
+        }
+
+        // Supprimer une enquête
+        function deleteSurvey(surveyId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette enquête ?')) {
+                state.surveys = state.surveys.filter(s => s.id !== surveyId);
+                delete state.responses[surveyId];
+                saveSurveys();
+                saveResponses();
+                render();
+            }
+        }
+
+        // Soumettre une réponse
+        function submitResponse() {
+            // Récupérer toutes les questions de toutes les sections
+            const allQuestions = state.currentSurvey.sections 
+                ? state.currentSurvey.sections.flatMap(s => s.questions)
+                : state.currentSurvey.questions;
+
+            // Vérifier les champs obligatoires
+            for (const question of allQuestions) {
+                if (question.required && !state.formData[question.id]) {
+                    alert(`La question "${question.label}" est obligatoire`);
+                    return;
+                }
+            }
+
+            const surveyResponses = state.responses[state.currentSurvey.id] || [];
+            const newResponse = {
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                data: state.formData
+            };
+
+            state.responses[state.currentSurvey.id] = [...surveyResponses, newResponse];
+            saveResponses();
+            
+            alert('Réponse enregistrée avec succès !');
+            navigateTo('list');
+        }
+
+        // Exporter les données
+        function exportData(surveyId, format) {
+            state.surveys["Nombre"] = Number(state.surveys["Nombre"])
+            const survey = state.surveys.find(s => s.id === surveyId);
+            const surveyResponses = state.responses[surveyId] || [];
+
+            if (surveyResponses.length === 0) {
+                alert('Aucune réponse à exporter');
+                return;
+            }
+
+            if (format === 'csv') {
+                exportToCSV(survey, surveyResponses);
+            } else if (format === 'json') {
+                exportToJSON(survey, surveyResponses);
+            }
+        }
+
+        function exportToCSV(survey, surveyResponses) {
+            // Récupérer toutes les questions (avec ou sans sections)
+            const allQuestions = survey.sections 
+                ? survey.sections.flatMap(s => s.questions)
+                : survey.questions;
+
+            const headers = ['ID Réponse', 'Date', ...allQuestions.map(q => q.label)];
+            const rows = surveyResponses.map(response => {
+                const row = [response.id, new Date(response.timestamp).toLocaleString()];
+                allQuestions.forEach(q => {
+                    const value = response.data[q.id];
+                    if (Array.isArray(value)) {
+                        row.push(value.join('; '));
+                    } else {
+                        row.push(value || '');
+                    }
+                });
+                return row;
+            });
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+            ].join('\n');
+
+            downloadFile(csvContent, `${survey.title}_${Date.now()}.csv`, 'text/csv');
+        }
+
+        function exportToJSON(survey, surveyResponses) {
+            const allQuestions = survey.sections 
+                ? survey.sections.flatMap(s => s.questions)
+                : survey.questions;
+
+            const data = {
+                survey: {
+                    title: survey.title,
+                    description: survey.description,
+                    questions: allQuestions
+                },
+                responses: surveyResponses,
+                exportedAt: new Date().toISOString()
+            };
+
+            const jsonContent = JSON.stringify(data, null, 2);
+            downloadFile(jsonContent, `${survey.title}_${Date.now()}.json`, 'application/json');
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Rendu de l'application
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (state.view === 'list') {
+                app.innerHTML = renderListView();
+                attachListViewListeners();
+            } else if (state.view === 'create') {
+                app.innerHTML = renderCreateEditView();
+                attachCreateEditListeners();
+            } else if (state.view === 'collect') {
+                app.innerHTML = renderCollectView();
+                attachCollectListeners();
+            } else if (state.view === 'results') {
+                app.innerHTML = renderResultsView();
+                attachResultsListeners();
+            }
+        }
+
+        // Vue: Liste des enquêtes
+        function renderListView() {
+            return `
+                <div class="header">
+                    <h1>Mes Enquêtes</h1>
+                    <button class="btn btn-primary" id="btn-new-survey">
+                        ➕ Nouvelle enquête
+                    </button>
+                </div>
+
+                ${state.surveys.length === 0 ? `
+                    <div class="empty-state">
+                        <p style="margin-bottom: 1rem;">Aucune enquête créée</p>
+                        <button class="btn btn-primary" id="btn-first-survey">
+                            Créer votre première enquête
+                        </button>
+                    </div>
+                ` : `
+                    <div class="survey-list">
+                        ${state.surveys.map(survey => `
+                            <div class="survey-item">
+                                <div class="survey-info">
+                                    <div class="survey-title">${survey.title}</div>
+                                    <div class="survey-description">${survey.description}</div>
+                                    <div class="survey-meta">
+                                        ${survey.sections ? survey.sections.reduce((sum, s) => sum + s.questions.length, 0) : (survey.questions ? survey.questions.length : 0)} question(s) • 
+                                        ${(state.responses[survey.id] || []).length} réponse(s)
+                                    </div>
+                                </div>
+                                <div class="survey-actions">
+                                    <button class="btn btn-icon" data-action="collect" data-survey-id="${survey.id}" title="Collecter">
+                                        👁️
+                                    </button>
+                                    <button class="btn btn-icon" data-action="results" data-survey-id="${survey.id}" title="Résultats">
+                                        📊
+                                    </button>
+                                    <button class="btn btn-icon" data-action="edit" data-survey-id="${survey.id}" title="Modifier">
+                                        ✏️
+                                    </button>
+                                    <button class="btn btn-icon" data-action="delete" data-survey-id="${survey.id}" title="Supprimer">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            `;
+        }
+
+        function attachListViewListeners() {
+            const newSurveyBtn = document.getElementById('btn-new-survey');
+            if (newSurveyBtn) {
+                newSurveyBtn.addEventListener('click', createNewSurvey);
+            }
+
+            const firstSurveyBtn = document.getElementById('btn-first-survey');
+            if (firstSurveyBtn) {
+                firstSurveyBtn.addEventListener('click', createNewSurvey);
+            }
+
+            // Actions sur les enquêtes
+            document.querySelectorAll('[data-action]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const action = e.currentTarget.dataset.action;
+                    const surveyId = e.currentTarget.dataset.surveyId;
+
+                    switch(action) {
+                        case 'collect':
+                            navigateTo('collect', surveyId);
+                            break;
+                        case 'results':
+                            navigateTo('results', surveyId);
+                            break;
+                        case 'edit':
+                            navigateTo('create', surveyId);
+                            break;
+                        case 'delete':
+                            deleteSurvey(surveyId);
+                            break;
+                    }
+                });
+            });
+        }
+
+        // Vue: Créer/Modifier une enquête
+        function renderCreateEditView() {
+            const isEdit = state.surveys.find(s => s.id === state.currentSurvey.id);
+            
+            // Migration pour les anciennes enquêtes sans sections
+            if (!state.currentSurvey.sections && state.currentSurvey.questions) {
+                state.currentSurvey.sections = [{
+                    id: Date.now().toString(),
+                    name: 'Section par défaut',
+                    questions: state.currentSurvey.questions
+                }];
+                delete state.currentSurvey.questions;
+            }
+            
+            return `
+                <div class="header">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button class="back-btn" id="btn-back">
+                            ← Retour
+                        </button>
+                        <h1>${isEdit ? 'Modifier' : 'Créer'} une enquête</h1>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="input-group">
+                        <label>Titre de l'enquête</label>
+                        <input type="text" id="survey-title" value="${state.currentSurvey.title}" placeholder="Ex: Enquête de satisfaction client">
+                    </div>
+                    <div class="input-group">
+                        <label>Description</label>
+                        <textarea id="survey-description" rows="3" placeholder="Décrivez l'objectif de votre enquête...">${state.currentSurvey.description}</textarea>
+                    </div>
+                </div>
+
+                ${state.currentSurvey.sections.map(section => `
+                    <div class="section-container">
+                        <div class="section-input">
+                            <input type="text" 
+                                   class="section-name-input"
+                                   data-section-id="${section.id}"
+                                   value="${section.name}" 
+                                   placeholder="Nom de la section"
+                                   style="font-weight: 600; font-size: 1.1rem;">
+                            <button class="btn btn-danger" data-delete-section="${section.id}" ${state.currentSurvey.sections.length === 1 ? 'disabled' : ''}>🗑️ Supprimer section</button>
+                        </div>
+
+                        <div id="questions-container-${section.id}">
+                            ${section.questions.map((question, index) => `
+                                <div class="question-card">
+                                    <div class="question-header">
+                                        <input type="text" 
+                                               class="question-input"
+                                               data-section-id="${section.id}"
+                                               data-question-id="${question.id}" 
+                                               data-field="label" 
+                                               value="${question.label}" 
+                                               placeholder="Votre question...">
+                                        <select class="question-input" data-section-id="${section.id}" data-question-id="${question.id}" data-field="type">
+                                            ${questionTypes.map(type => `
+                                                <option value="${type.value}" ${question.type === type.value ? 'selected' : ''}>
+                                                    ${type.label}
+                                                </option>
+                                            `).join('')}
+                                        </select>
+                                        <button class="btn btn-danger" data-section-id="${section.id}" data-delete-question="${question.id}">🗑️</button>
+                                    </div>
+
+                                    ${['radio', 'checkbox', 'select'].includes(question.type) ? `
+                                        <div class="input-group">
+                                            <label>Options (une par ligne)</label>
+                                            <textarea class="question-input"
+                                                     data-section-id="${section.id}"
+                                                     data-question-id="${question.id}" 
+                                                     data-field="options" 
+                                                     rows="3" 
+                                                     placeholder="Option 1&#10;Option 2&#10;Option 3">${question.options.join('\n')}</textarea>
+                                        </div>
+                                    ` : ''}
+
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" 
+                                               class="question-input"
+                                               data-section-id="${section.id}"
+                                               data-question-id="${question.id}" 
+                                               data-field="required" 
+                                               ${question.required ? 'checked' : ''}>
+                                        Question obligatoire
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <button class="btn btn-secondary" data-add-question="${section.id}" style="margin-bottom: 1rem;">
+                            ➕ Ajouter une question à cette section
+                        </button>
+                    </div>
+                `).join('')}
+
+                <div class="flex-gap">
+                    <button class="btn add-section-btn" id="btn-add-section">
+                        📑 Ajouter une section
+                    </button>
+                    <button class="btn btn-primary" id="btn-save-survey">
+                        💾 Enregistrer l'enquête
+                    </button>
+                </div>
+            `;
+        }
+
+        function attachCreateEditListeners() {
+            // Bouton retour
+            document.getElementById('btn-back').addEventListener('click', () => {
+                navigateTo('list');
+            });
+
+            // Écouter les changements de titre
+            document.getElementById('survey-title').addEventListener('input', (e) => {
+                state.currentSurvey.title = e.target.value;
+            });
+
+            // Écouter les changements de description
+            document.getElementById('survey-description').addEventListener('input', (e) => {
+                state.currentSurvey.description = e.target.value;
+            });
+
+            // Bouton ajouter section
+            document.getElementById('btn-add-section').addEventListener('click', addSection);
+
+            // Bouton sauvegarder
+            document.getElementById('btn-save-survey').addEventListener('click', saveSurvey);
+
+            // Boutons ajouter question par section
+            document.querySelectorAll('[data-add-question]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const sectionId = e.currentTarget.dataset.addQuestion;
+                    addQuestion(sectionId);
+                });
+            });
+
+            // Boutons supprimer section
+            document.querySelectorAll('[data-delete-section]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const sectionId = e.currentTarget.dataset.deleteSection;
+                    deleteSection(sectionId);
+                });
+            });
+
+            // Boutons supprimer question
+            document.querySelectorAll('[data-delete-question]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const sectionId = e.currentTarget.dataset.sectionId;
+                    const questionId = e.currentTarget.dataset.deleteQuestion;
+                    deleteQuestion(sectionId, questionId);
+                });
+            });
+
+            // Écouter les changements des noms de sections
+            document.querySelectorAll('.section-name-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const sectionId = e.target.dataset.sectionId;
+                    updateSection(sectionId, e.target.value);
+                });
+            });
+
+            // Écouter les changements des questions
+            document.querySelectorAll('.question-input').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const sectionId = e.target.dataset.sectionId;
+                    const questionId = e.target.dataset.questionId;
+                    const field = e.target.dataset.field;
+                    let value = e.target.value;
+
+                    if (field === 'options') {
+                        value = value.split('\n').filter(o => o.trim());
+                    } else if (e.target.type === 'checkbox') {
+                        value = e.target.checked;
+                    }
+
+                    updateQuestion(sectionId, questionId, field, value);
+                });
+
+                input.addEventListener('change', (e) => {
+                    if (e.target.type === 'checkbox') {
+                        const sectionId = e.target.dataset.sectionId;
+                        const questionId = e.target.dataset.questionId;
+                        const field = e.target.dataset.field;
+                        updateQuestion(sectionId, questionId, field, e.target.checked);
+                    }
+                });
+            });
+        }
+
+        // Vue: Collecte de réponses
+        function renderCollectView() {
+            // Migration pour les anciennes enquêtes sans sections
+            if (!state.currentSurvey.sections && state.currentSurvey.questions) {
+                state.currentSurvey.sections = [{
+                    id: Date.now().toString(),
+                    name: 'Section par défaut',
+                    questions: state.currentSurvey.questions
+                }];
+            }
+
+            return `
+                <div class="header">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button class="back-btn" id="btn-back-collect">
+                            ← Retour
+                        </button>
+                        <h1>Répondre à l'enquête</h1>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>${state.currentSurvey.title}</h2>
+                    ${state.currentSurvey.description ? `<p style="color: #6b7280; margin-bottom: 1.5rem;">${state.currentSurvey.description}</p>` : ''}
+
+                    <div>
+                        ${state.currentSurvey.sections.map(section => `
+                            <div class="section-header">
+                                ${section.name}
+                            </div>
+                            ${section.questions.map((question, index) => `
+                                <div class="question-item">
+                                    <label class="question-label">
+                                        ${question.label}
+                                        ${question.required ? '<span class="required">*</span>' : ''}
+                                    </label>
+                                    ${renderQuestionInput(question)}
+                                </div>
+                            `).join('')}
+                        `).join('')}
+
+                        <button class="btn btn-primary" id="btn-submit-response" style="width: 100%; justify-content: center; margin-top: 2rem;">
+                            Soumettre mes réponses
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderQuestionInput(question) {
+            switch (question.type) {
+                case 'text':
+                case 'email':
+                case 'date':
+                case 'number':
+                    return `<input type="${question.type}" class="form-input" data-question="${question.id}" ${question.required ? 'required' : ''}>`;
+                
+                case 'textarea':
+                    return `<textarea class="form-input" data-question="${question.id}" rows="4" ${question.required ? 'required' : ''}></textarea>`;
+                
+                case 'select':
+                    return `
+                        <select class="form-input" data-question="${question.id}" ${question.required ? 'required' : ''}>
+                            <option value="">-- Sélectionnez --</option>
+                            ${question.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    `;
+                
+                case 'radio':
+                    return `
+                        <div class="radio-group">
+                            ${question.options.map(opt => `
+                                <label class="radio-label">
+                                    <input type="radio" class="form-input" name="q_${question.id}" value="${opt}" data-question="${question.id}" ${question.required ? 'required' : ''}>
+                                    ${opt}
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                
+                case 'checkbox':
+                    return `
+                        <div class="checkbox-group">
+                            ${question.options.map(opt => `
+                                <label class="checkbox-label-option">
+                                    <input type="checkbox" class="form-input" value="${opt}" data-question="${question.id}" data-checkbox="true">
+                                    ${opt}
+                                </label>
+                            `).join('')}
+                        </div>
+                    `;
+                
+                default:
+                    return '';
+            }
+        }
+
+        function attachCollectListeners() {
+            // Bouton retour
+            document.getElementById('btn-back-collect').addEventListener('click', () => {
+                navigateTo('list');
+            });
+
+            // Bouton soumettre
+            document.getElementById('btn-submit-response').addEventListener('click', submitResponse);
+
+            // Écouter tous les inputs
+            document.querySelectorAll('.form-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const questionId = e.target.dataset.question;
+                    
+                    if (e.target.dataset.checkbox === 'true') {
+                        // Gérer les checkboxes
+                        if (!state.formData[questionId]) {
+                            state.formData[questionId] = [];
+                        }
+                        if (e.target.checked) {
+                            state.formData[questionId].push(e.target.value);
+                        } else {
+                            state.formData[questionId] = state.formData[questionId].filter(v => v !== e.target.value);
+                        }
+                    } else {
+                        state.formData[questionId] = e.target.value;
+                    }
+                });
+
+                input.addEventListener('input', (e) => {
+                    if (e.target.type !== 'checkbox' && e.target.type !== 'radio') {
+                        const questionId = e.target.dataset.question;
+                        state.formData[questionId] = e.target.value;
+                    }
+                });
+            });
+        }
+
+        // Vue: Résultats
+        function renderResultsView() {
+            const surveyResponses = state.responses[state.currentSurvey.id] || [];
+
+            return `
+                <div class="header">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button class="back-btn" id="btn-back-results">
+                            ← Retour
+                        </button>
+                        <h1>Résultats: ${state.currentSurvey.title}</h1>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2>Export des données</h2>
+                            <p style="color: #6b7280;">${surveyResponses.length} réponse(s) collectée(s)</p>
+                        </div>
+                        <div class="flex-gap">
+                            <button class="btn btn-success" id="btn-export-csv" ${surveyResponses.length === 0 ? 'disabled' : ''}>
+                                📥 Exporter CSV
+                            </button>
+                            <button class="btn btn-primary" id="btn-export-json" ${surveyResponses.length === 0 ? 'disabled' : ''}>
+                                📥 Exporter JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                ${surveyResponses.length > 0 ? `
+                    <div class="tabs">
+                        <button class="tab ${state.resultsTab === 'data' ? 'active' : ''}" data-tab="data">
+                            📋 Données brutes
+                        </button>
+                        <button class="tab ${state.resultsTab === 'analysis' ? 'active' : ''}" data-tab="analysis">
+                            📊 Analyse
+                        </button>
+                    </div>
+
+                    ${state.resultsTab === 'data' ? renderDataTable(surveyResponses) : renderAnalysis(surveyResponses)}
+                ` : `
+                    <div class="card">
+                        <div class="empty-state">
+                            <p>Aucune réponse collectée pour le moment</p>
+                        </div>
+                    </div>
+                `}
+            `;
+        }
+
+        function renderDataTable(surveyResponses) {
+            const allQuestions = state.currentSurvey.sections 
+                ? state.currentSurvey.sections.flatMap(s => s.questions)
+                : state.currentSurvey.questions;
+
+            return `
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    ${allQuestions.map(q => `<th>${q.label}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${surveyResponses.map((response, idx) => `
+                                    <tr>
+                                        <td>${idx + 1}</td>
+                                        <td>${new Date(response.timestamp).toLocaleString()}</td>
+                                        ${allQuestions.map(q => {
+                                            const value = response.data[q.id];
+                                            const displayValue = Array.isArray(value) ? value.join(', ') : (value || '-');
+                                            return `<td>${displayValue}</td>`;
+                                        }).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAnalysis(surveyResponses) {
+            const totalResponses = surveyResponses.length;
+            const completionRate = 100; // Toutes les réponses soumises sont complètes
+            const avgResponseTime = calculateAvgResponseTime(surveyResponses);
+            const allQuestions = state.currentSurvey.sections 
+                ? state.currentSurvey.sections.flatMap(s => s.questions)
+                : state.currentSurvey.questions;
+
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${totalResponses}</div>
+                        <div class="stat-label">Réponses totales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${completionRate}%</div>
+                        <div class="stat-label">Taux de complétion</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${allQuestions.length}</div>
+                        <div class="stat-label">Questions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${avgResponseTime}</div>
+                        <div class="stat-label">Temps moyen</div>
+                    </div>
+                </div>
+
+                ${allQuestions.map(question => renderQuestionAnalysis(question, surveyResponses)).join('')}
+            `;
+        }
+
+        function calculateAvgResponseTime(responses) {
+            if (responses.length < 2) return 'N/A';
+            
+            const times = [];
+            for (let i = 1; i < responses.length; i++) {
+                const diff = new Date(responses[i].timestamp) - new Date(responses[i-1].timestamp);
+                times.push(diff);
+            }
+            
+            const avgMs = times.reduce((a, b) => a + b, 0) / times.length;
+            const avgMinutes = Math.round(avgMs / 1000 / 60);
+            
+            return avgMinutes > 60 ? `${Math.round(avgMinutes / 60)}h` : `${avgMinutes}min`;
+        }
+
+        function renderQuestionAnalysis(question, surveyResponses) {
+            const questionData = surveyResponses.map(r => r.data[question.id]).filter(v => v);
+            
+            if (questionData.length === 0) {
+                return '';
+            }
+
+            let content = '';
+
+            switch (question.type) {
+                case 'radio':
+                case 'select':
+                    content = renderChoiceAnalysis(question, questionData, 'pie');
+                    break;
+                case 'checkbox':
+                    content = renderMultipleChoiceAnalysis(question, questionData);
+                    break;
+                case 'number':
+                    content = renderNumericAnalysis(question, questionData);
+                    break;
+                case 'text':
+                case 'textarea':
+                case 'email':
+                    content = renderTextAnalysis(question, questionData);
+                    break;
+                case 'date':
+                    content = renderDateAnalysis(question, questionData);
+                    break;
+                default:
+                    content = `<p>${questionData.length} réponse(s) collectée(s)</p>`;
+            }
+
+            return `
+                <div class="question-analysis">
+                    <h3>${question.label}</h3>
+                    ${content}
+                </div>
+            `;
+        }
+
+        function renderChoiceAnalysis(question, data, chartType = 'bar') {
+            const counts = {};
+            data.forEach(value => {
+                counts[value] = (counts[value] || 0) + 1;
+            });
+
+            const chartId = `chart-${question.id}`;
+            const total = data.length;
+
+            setTimeout(() => {
+                const ctx = document.getElementById(chartId);
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: chartType,
+                        data: {
+                            labels: Object.keys(counts),
+                            datasets: [{
+                                label: 'Nombre de réponses',
+                                data: Object.values(counts),
+                                backgroundColor: [
+                                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+                                    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: chartType === 'pie',
+                                    position: 'bottom'
+                                }
+                            },
+                            scales: chartType === 'bar' ? {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            } : {}
+                        }
+                    });
+                }
+            }, 100);
+
+            return `
+                <div class="chart-container">
+                    <canvas id="${chartId}"></canvas>
+                </div>
+                <div style="margin-top: 1rem;">
+                    ${Object.entries(counts).map(([key, value]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                            <span>${key}</span>
+                            <span><strong>${value}</strong> (${Math.round(value / total * 100)}%)</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderMultipleChoiceAnalysis(question, data) {
+            const counts = {};
+            data.forEach(values => {
+                if (Array.isArray(values)) {
+                    values.forEach(v => {
+                        counts[v] = (counts[v] || 0) + 1;
+                    });
+                }
+            });
+
+            const chartId = `chart-${question.id}`;
+            const total = data.length;
+
+            setTimeout(() => {
+                const ctx = document.getElementById(chartId);
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(counts),
+                            datasets: [{
+                                label: 'Nombre de sélections',
+                                data: Object.values(counts),
+                                backgroundColor: '#3b82f6',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 100);
+
+            return `
+                <div class="chart-container">
+                    <canvas id="${chartId}"></canvas>
+                </div>
+                <div style="margin-top: 1rem;">
+                    ${Object.entries(counts).map(([key, value]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb;">
+                            <span>${key}</span>
+                            <span><strong>${value}</strong> (${Math.round(value / total * 100)}%)</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderNumericAnalysis(question, data) {
+            const numbers = data.map(v => parseFloat(v)).filter(v => !isNaN(v));
+            
+            if (numbers.length === 0) {
+                return '<p>Aucune donnée numérique valide</p>';
+            }
+
+            const min = Math.min(...numbers);
+            const max = Math.max(...numbers);
+            const avg = numbers.reduce((a, b) => a + b, 0) / numbers.length;
+            const median = calculateMedian(numbers);
+
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${avg.toFixed(2)}</div>
+                        <div class="stat-label">Moyenne</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${median}</div>
+                        <div class="stat-label">Médiane</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${min}</div>
+                        <div class="stat-label">Minimum</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${max}</div>
+                        <div class="stat-label">Maximum</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateMedian(numbers) {
+            const sorted = [...numbers].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 === 0 ? ((sorted[mid - 1] + sorted[mid]) / 2).toFixed(2) : sorted[mid];
+        }
+
+        function renderTextAnalysis(question, data) {
+            const wordCount = data.reduce((sum, text) => sum + text.split(' ').length, 0);
+            const avgWords = Math.round(wordCount / data.length);
+
+            return `
+                <div style="margin-bottom: 1rem;">
+                    <p><strong>${data.length}</strong> réponse(s) • <strong>${avgWords}</strong> mots en moyenne</p>
+                </div>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    ${data.slice(0, 10).map((text, idx) => `
+                        <div style="padding: 0.75rem; background: white; border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                            <div style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.25rem;">Réponse ${idx + 1}</div>
+                            <div>${text}</div>
+                        </div>
+                    `).join('')}
+                    ${data.length > 10 ? `<p style="text-align: center; color: #6b7280; margin-top: 1rem;">... et ${data.length - 10} autre(s) réponse(s)</p>` : ''}
+                </div>
+            `;
+        }
+
+        function renderDateAnalysis(question, data) {
+            const dates = data.map(d => new Date(d)).filter(d => !isNaN(d));
+            
+            if (dates.length === 0) {
+                return '<p>Aucune date valide</p>';
+            }
+
+            const sortedDates = dates.sort((a, b) => a - b);
+            const earliest = sortedDates[0].toLocaleDateString();
+            const latest = sortedDates[sortedDates.length - 1].toLocaleDateString();
+
+            return `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${earliest}</div>
+                        <div class="stat-label">Date la plus ancienne</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${latest}</div>
+                        <div class="stat-label">Date la plus récente</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function attachResultsListeners() {
+            // Bouton retour
+            document.getElementById('btn-back-results').addEventListener('click', () => {
+                navigateTo('list');
+            });
+
+            // Boutons d'export
+            const btnExportCsv = document.getElementById('btn-export-csv');
+            const btnExportJson = document.getElementById('btn-export-json');
+
+            if (btnExportCsv && !btnExportCsv.disabled) {
+                btnExportCsv.addEventListener('click', () => {
+                    exportData(state.currentSurvey.id, 'csv');
+                });
+            }
+
+            if (btnExportJson && !btnExportJson.disabled) {
+                btnExportJson.addEventListener('click', () => {
+                    exportData(state.currentSurvey.id, 'json');
+                });
+            }
+
+            // Onglets
+            document.querySelectorAll('[data-tab]').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    state.resultsTab = e.target.dataset.tab;
+                    render();
+                });
+            });
+        }
+
+        // Démarrer l'application
+        init();
+    </script>
 </body>
 </html>
