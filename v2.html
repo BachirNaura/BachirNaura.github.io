@@ -903,9 +903,12 @@
 
             app.innerHTML = `
                 <div style="max-width:600px; margin: 2rem auto;">
-                    <div class="badge-offline" style="justify-content:center;">⚠️ Mode Autonome (Verrouillé)</div>
-                    
+                    <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:2rem;">
+                        Pour synchroniser : Cliquez sur "Exporter", transmettez le fichier à l'administrateur, qui le fusionnera.
+                    </div>
+                                       
                     <div class="card" style="text-align:center; padding:3rem 2rem;">
+                        <div class="badge-offline" style="justify-content:center;">⚠️ Mode Autonome (Verrouillé)</div>
                         <h1 style="color:var(--primary); margin-bottom:1rem;">${state.currentSurvey.title}</h1>
                         
                         <div style="margin-bottom:2rem; padding:1rem; background:#f8fafc; border-radius:8px;">
@@ -916,13 +919,9 @@
 
                         <div style="display:grid; gap:1rem;">
                             <button class="btn btn-primary" style="padding:1rem; font-size:1.1rem;" onclick="navigateTo('collect')">📝 Nouvelle Saisie</button>
-                            <button class="btn btn-info" style="padding:1rem;" onclick="exportSyncData()">📦 Exporter les données (Sync)</button>
+                            <button class="btn btn-info" style="padding:1rem;" onclick="exportSyncData()">📦 Exporter les données (Synchronisation)</button>
                             <button class="btn btn-secondary" onclick="navigateTo('results')">📊 Voir mes saisies</button>
                         </div>
-                    </div>
-                    
-                    <div style="text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:2rem;">
-                        Pour synchroniser : Cliquez sur "Exporter", transmettez le fichier à l'administrateur, qui le fusionnera.
                     </div>
                 </div>
             `;
