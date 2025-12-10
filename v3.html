@@ -681,10 +681,10 @@
                             <div class="flex-end">
                                 ${s.status==='draft' ? '<button class="btn btn-ghost" disabled style="opacity:0.5">🚫</button>' : `<button class="btn btn-secondary btn-sm" onclick="navigateTo('collect', '${s.id}')">Saisir</button>`}
                                 <button class="btn btn-secondary btn-sm" onclick="navigateTo('results', '${s.id}')">Résultats</button>
-                                <button class="btn btn-ghost" onclick="navigateTo('create', '${s.id}')">✏️</button>
-                                <button class="btn btn-ghost" onclick="exportSurveyStructure('${s.id}')" title="Exporter Structure">📤</button>
-                                ${s.status!=='draft' ? `<button class="btn btn-ghost" onclick="downloadOfflineApp('${s.id}')" title="App Collecteur">📲</button>` : ''}
-                                <button class="btn btn-ghost" style="color:var(--danger)" onclick="deleteSurvey('${s.id}')">🗑️</button>
+                                <button class="btn btn-ghost" onclick="navigateTo('create', '${s.id}')">✏️Modifier</button>
+                                <button class="btn btn-ghost" onclick="exportSurveyStructure('${s.id}')" title="Exporter Structure">📤Exporter questionnaire</button>
+                                ${s.status!=='draft' ? `<button class="btn btn-ghost" onclick="downloadOfflineApp('${s.id}')" title="App Collecteur">📲 App hors ligne</button>` : ''}
+                                <button class="btn btn-ghost" style="color:var(--danger)" onclick="deleteSurvey('${s.id}')">🗑️Supprimer</button>
                             </div>
                         </div>`;
                     }).join('')}
@@ -880,7 +880,7 @@
                     <div class="flex-end">
                         <button class="btn btn-warning" onclick="triggerImport()">📥 Importer données (Sync)</button>
                         <button class="btn btn-secondary" onclick="exportSyncData()">📤 Exporter données (Sync)</button>
-                        <button class="btn btn-success" onclick="exportToExcel('${state.currentSurvey.id}')">Excel</button>
+                        <button class="btn btn-success" onclick="exportToExcel('${state.currentSurvey.id}')">Exporter Excel</button>
                     </div>
                 </div>
                 <div class="tabs-container">
@@ -1065,7 +1065,7 @@
             const count = (state.responses[state.currentSurvey.id] || []).length;
             app.innerHTML = `
                 <div style="max-width:600px; margin: 2rem auto;">
-                    <div class="badge-offline" style="justify-content:center;">⚠️ Mode Autonome (Verrouillé)</div>
+                    <div class="badge-offline" style="justify-content:center;">⚠️ Pour exporter les données et envoyer pour synchronisation cliquer sur Exporter les données (Sync)</div>
                     <div class="card" style="text-align:center; padding:3rem 2rem;">
                         <h1 style="color:var(--primary); margin-bottom:1rem;">${state.currentSurvey.title}</h1>
                         <div style="margin-bottom:2rem; padding:1rem; background:#f8fafc; border-radius:8px;">
