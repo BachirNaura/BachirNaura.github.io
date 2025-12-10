@@ -682,8 +682,8 @@
                                 ${s.status==='draft' ? '<button class="btn btn-ghost" disabled style="opacity:0.5">🚫</button>' : `<button class="btn btn-secondary btn-sm" onclick="navigateTo('collect', '${s.id}')">Saisir</button>`}
                                 <button class="btn btn-secondary btn-sm" onclick="navigateTo('results', '${s.id}')">Résultats</button>
                                 <button class="btn btn-ghost" onclick="navigateTo('create', '${s.id}')">✏️Modifier</button>
-                                <button class="btn btn-ghost" onclick="exportSurveyStructure('${s.id}')" title="Exporter Structure">📤Exporter questionnaire</button>
-                                ${s.status!=='draft' ? `<button class="btn btn-ghost" onclick="downloadOfflineApp('${s.id}')" title="App Collecteur">📲 App hors ligne</button>` : ''}
+                                <button class="btn btn-ghost" onclick="exportSurveyStructure('${s.id}')" title="Exporter Structure">📤Exporter Enquête</button>
+                                ${s.status!=='draft' ? `<button class="btn btn-ghost" onclick="downloadOfflineApp('${s.id}')" title="App Collecteur">📲 Collecter hors ligne</button>` : ''}
                                 <button class="btn btn-ghost" style="color:var(--danger)" onclick="deleteSurvey('${s.id}')">🗑️Supprimer</button>
                             </div>
                         </div>`;
