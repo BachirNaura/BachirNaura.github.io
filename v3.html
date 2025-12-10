@@ -1065,7 +1065,7 @@
             const count = (state.responses[state.currentSurvey.id] || []).length;
             app.innerHTML = `
                 <div style="max-width:600px; margin: 2rem auto;">
-                    <div class="badge-offline" style="justify-content:center;">⚠️ Pour exporter les données et envoyer pour synchronisation cliquer sur Exporter les données (Sync)</div>
+                    <div class="badge-offline" style="justify-content:center;">⚠️ Pour synchroniser : Cliquez sur "Exporter les données (Sync)", transmettez le fichier à l'administrateur, qui le fusionnera.</div>
                     <div class="card" style="text-align:center; padding:3rem 2rem;">
                         <h1 style="color:var(--primary); margin-bottom:1rem;">${state.currentSurvey.title}</h1>
                         <div style="margin-bottom:2rem; padding:1rem; background:#f8fafc; border-radius:8px;">
