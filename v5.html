@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4F46E5">
+    <title>SahelStats Pro - Mobile</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #4F46E5;       --primary-dark: #4338ca;  --primary-light: #e0e7ff;
+            --secondary: #0f172a;     --surface: #ffffff;       --background: #f8fafc;
+            --text-main: #1e293b;     --text-muted: #64748b;
+            --success: #10b981;       --warning: #f59e0b;       --danger: #ef4444;      --info: #0ea5e9;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius-md: 0.5rem;      --radius-xl: 1rem;
+            --navbar-height: 64px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--background); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 2rem; }
+
+        /* --- Navbar Responsive --- */
+        .navbar { 
+            background: var(--surface); 
+            border-bottom: 1px solid var(--border); 
+            height: var(--navbar-height); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 1.5rem; 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; 
+            box-shadow: var(--shadow-sm);
+        }
+        .brand { font-size: 1.25rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
+        .brand span { color: var(--secondary); }
+        .nav-profile { display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-muted); }
+        .avatar { width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.2rem; }
+        
+        /* Mode petit écran pour la navbar */
+        @media (max-width: 640px) {
+            .navbar { padding: 0 1rem; }
+            .brand span.subtitle { display: none; } /* Cache le sous-texte sur mobile */
+            #nav-mode-label { display: none; } /* Cache le texte "Mode connecté" sur mobile */
+        }
+
+        .main-container { flex: 1; padding: 1.5rem; max-width: 1400px; margin: 0 auto; width: 100%; }
+        @media (max-width: 640px) { .main-container { padding: 1rem; } }
+
+        /* --- Components --- */
+        .card { background: var(--surface); border-radius: var(--radius-xl); padding: 1.5rem; border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); transition: transform 0.2s; }
+        @media (max-width: 640px) { .card { padding: 1rem; border-radius: 0.75rem; } }
+
+        /* Boutons Responsive */
+        .btn { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; 
+            padding: 0.75rem 1.25rem; border-radius: var(--radius-md); font-weight: 600; 
+            cursor: pointer; border: 1px solid transparent; transition: all 0.2s; 
+            font-size: 0.95rem; white-space: nowrap; user-select: none;
+            touch-action: manipulation; /* Optimisation tactile */
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-sm { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
+        
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.3); }
+        .btn-secondary { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-danger { background: #fee2e2; color: #991b1b; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-ghost { background: transparent; color: var(--text-muted); padding: 0.5rem; }
+
+        /* Sur mobile, les boutons prennent souvent 100% de largeur dans les formulaires */
+        @media (max-width: 640px) {
+            .btn-block-mobile { width: 100%; margin-bottom: 0.5rem; }
+            .flex-end .btn { flex: 1; } /* Boutons partagent l'espace */
+        }
+
+        /* Inputs */
+        .form-control { 
+            width: 100%; padding: 0.875rem 1rem; border: 1px solid var(--border); 
+            border-radius: var(--radius-md); background: #fcfcfc; font-size: 1rem; /* 16px min pour éviter le zoom iOS */
+            transition: border-color 0.2s;
+        }
+        .form-control:focus { border-color: var(--primary); ring: 2px solid var(--primary-light); }
+        .input-group { margin-bottom: 1.5rem; }
+        label { display: block; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main); }
+
+        /* Checkbox & Radio Agrandis pour le tactile */
+        input[type="checkbox"], input[type="radio"] {
+            transform: scale(1.3); margin-right: 0.5rem; accent-color: var(--primary);
+        }
+
+        /* --- Layout Utils --- */
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .flex-end { display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+        
+        /* Colonne unique sur mobile pour les en-têtes */
+        @media (max-width: 640px) {
+            .flex-between { flex-direction: column; align-items: stretch; }
+            .flex-end { justify-content: stretch; }
+            .header-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+            .header-actions .btn { width: 100%; }
+        }
+
+        .hidden { display: none !important; }
+        .text-sm { font-size: 0.85rem; color: var(--text-muted); }
+        .text-center { text-align: center; }
+
+        /* Badges */
+        .badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .badge-draft { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+        .badge-published { background: #ecfdf5; color: #047857; border: 1px solid #d1fae5; }
+
+        /* --- Tables Responsive --- */
+        .table-wrapper { 
+            overflow-x: auto; 
+            border-radius: 0.75rem; 
+            border: 1px solid var(--border); 
+            background: white; 
+            margin-bottom: 1rem;
+            /* Scroll smooth sur mobile */
+            -webkit-overflow-scrolling: touch; 
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 600px; /* Force scroll */ }
+        th, td { padding: 1rem; border-bottom: 1px solid var(--border); text-align: left; }
+        th { background: #f8fafc; font-weight: 600; color: var(--text-muted); white-space: nowrap; position: sticky; top: 0; }
+        
+        /* Edit cell focus */
+        td[contenteditable="true"]:focus { background: #eff6ff; outline: 2px solid var(--primary); padding: 0.8rem; }
+
+        /* --- Toaster --- */
+        #toast-container { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { background: var(--secondary); color: white; padding: 1rem 1.25rem; border-radius: var(--radius-md); display: flex; align-items: center; gap: 0.75rem; box-shadow: var(--shadow-md); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); font-size: 0.9rem; }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.warning { border-left: 4px solid var(--warning); background: #fff7ed; color: #7c2d12; border: 1px solid #fed7aa; }
+        .toast.error { border-left: 4px solid var(--danger); background: #fef2f2; color: #991b1b; }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* --- Modals Responsive --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1100; backdrop-filter: blur(2px); padding: 1rem; }
+        .modal-content { background: white; padding: 1.5rem; border-radius: var(--radius-xl); width: 100%; max-width: 450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: zoomIn 0.2s; }
+        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .file-drop-area { border: 2px dashed var(--border); padding: 2rem 1rem; text-align: center; margin: 1rem 0; cursor: pointer; border-radius: var(--radius-md); transition: background 0.2s; background: #f8fafc; }
+        .file-drop-area:active { background: #eff6ff; border-color: var(--primary); }
+
+        /* --- Tabs Scrollable --- */
+        .tabs-container { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
+        .tab-btn { padding: 0.75rem 1rem; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 600; cursor: pointer; white-space: nowrap; font-size: 0.95rem; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* --- Analysis Grids --- */
+        .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        @media (max-width: 480px) { .analysis-grid { grid-template-columns: 1fr; } } /* 1 colonne sur petits mobiles */
+        
+        .chart-container { position: relative; height: 250px; width: 100%; margin-bottom: 1rem; }
+        
+        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .stat-box { background: #f1f5f9; padding: 1rem; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--border); }
+        .stat-num { font-size: 1.25rem; font-weight: 800; color: var(--secondary); word-break: break-all; }
+        .stat-lbl { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-top: 0.25rem; letter-spacing: 0.05em; }
+        
+        .axis-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border); }
+        .axis-inputs input { padding: 0.4rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; width: 100%; }
+
+        /* Draggable List Styles */
+        .q-card { background: #f8fafc; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; gap: 0.75rem; align-items: flex-start; }
+        .drag-handle { cursor: grab; padding: 0.5rem 0; color: var(--text-muted); font-size: 1.5rem; line-height: 1; touch-action: none; }
+        .drag-over { border: 2px dashed var(--primary) !important; background: var(--primary-light) !important; }
+        
+        /* Ajustements d'impression pour rapports */
+        @media print {
+            .navbar, .btn, .tabs-container { display: none !important; }
+            .card { border: none; box-shadow: none; break-inside: avoid; }
+            body { background: white; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- Modales -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-title" style="margin-bottom:0.5rem; color:var(--secondary);">Confirmation</h3>
+            <p id="modal-msg" style="color:var(--text-muted); margin-bottom:1.5rem;">Êtes-vous sûr ?</p>
+            <div class="flex-end">
+                <button class="btn btn-secondary btn-block-mobile" id="modal-cancel">Annuler</button>
+                <button class="btn btn-danger btn-block-mobile" id="modal-confirm">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="import-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 style="color:var(--primary);">📥 Fusionner Données</h3>
+            <p class="text-sm" style="margin-bottom:1rem;">Sélectionnez fichiers JSON de collecteurs.</p>
+            <input type="file" id="import-file" accept=".json" multiple class="hidden">
+            <div class="file-drop-area" onclick="document.getElementById('import-file').click()">
+                <div style="font-size:2.5rem;">📂</div>
+                <p>Cliquez pour choisir les fichiers</p>
+            </div>
+            <div id="import-status" class="text-sm" style="margin-top:1rem; color:var(--info); font-weight:600;"></div>
+            <div class="flex-end" style="margin-top:1rem;">
+                <button class="btn btn-secondary btn-block-mobile" onclick="closeImportModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="import-struct-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 style="color:var(--primary);">📥 Importer Questionnaire</h3>
+            <p class="text-sm" style="margin-bottom:1rem;">Chargez un fichier structure (.json).</p>
+            <input type="file" id="import-struct-file" accept=".json" class="hidden">
+            <div class="file-drop-area" onclick="document.getElementById('import-struct-file').click()">
+                <div style="font-size:2.5rem;">📝</div>
+                <p>Sélectionner fichier</p>
+            </div>
+            <div class="flex-end">
+                <button class="btn btn-secondary btn-block-mobile" onclick="closeStructModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="brand">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            Sahel<span>Stats</span> <span class="subtitle" style="font-weight:300; font-size:0.8em; margin-left:5px; color:var(--text-muted)">Pro</span>
+        </div>
+        <div class="nav-profile">
+            <span id="nav-mode-label">Mode Connecté</span>
+            <div class="avatar" title="Profil">👨‍🔬</div>
+        </div>
+    </nav>
+
+    <div id="app" class="main-container"></div>
+
+    <script>
+        // --- Configuration ---
+        const embeddedSurveyData = null; 
+        const isLockedMode = false; 
+
+        // --- État Global ---
+        let state = {
+            view: 'list',
+            surveys: [],
+            currentSurvey: null,
+            responses: {},
+            formData: {},
+            resultsTab: 'data', 
+            isOfflineMode: false,
+            collectorName: '',
+            filterCollector: '',
+            activeCharts: []
+        };
+
+        let draggedQ = null; 
+
+        // --- Initialisation ---
+        function init() {
+            if (embeddedSurveyData || isLockedMode) {
+                state.isOfflineMode = true;
+                if (embeddedSurveyData) {
+                    state.surveys = [embeddedSurveyData];
+                    state.currentSurvey = embeddedSurveyData;
+                } else {
+                    loadData();
+                }
+                
+                if(state.currentSurvey) {
+                    const savedResponses = localStorage.getItem(`responses_${state.currentSurvey.id}`);
+                    state.responses = savedResponses ? { [state.currentSurvey.id]: JSON.parse(savedResponses) } : { [state.currentSurvey.id]: [] };
+                }
+
+                state.collectorName = localStorage.getItem('collector_name') || '';
+                const modeLabel = document.getElementById('nav-mode-label');
+                if(modeLabel) modeLabel.textContent = isLockedMode ? "Mode Collecteur" : "Autonome";
+                navigateTo('offline-home');
+            } else {
+                loadData();
+                render();
+            }
+        }
+
+        function loadData() {
+            const savedSurveys = localStorage.getItem('surveys');
+            const savedResponses = localStorage.getItem('responses');
+            if (savedSurveys) state.surveys = JSON.parse(savedSurveys);
+            if (savedResponses) state.responses = JSON.parse(savedResponses);
+        }
+
+        function saveData() {
+            if (state.isOfflineMode) {
+                localStorage.setItem(`responses_${state.currentSurvey.id}`, JSON.stringify(state.responses[state.currentSurvey.id]));
+                localStorage.setItem('collector_name', state.collectorName);
+            } else {
+                localStorage.setItem('surveys', JSON.stringify(state.surveys));
+                localStorage.setItem('responses', JSON.stringify(state.responses));
+            }
+        }
+
+        function navigateTo(view, surveyId = null) {
+            if (!state.isOfflineMode && !isLockedMode && (state.view === 'create') && view === 'list') {
+                saveDraft();
+            }
+
+            if (surveyId) {
+                const targetSurvey = state.surveys.find(s => s.id === surveyId);
+                if (!state.isOfflineMode && targetSurvey && view === 'collect' && targetSurvey.status === 'draft') {
+                    showToast("Enquête en brouillon. Publiez-la pour collecter.", "error");
+                    return; 
+                }
+                state.currentSurvey = targetSurvey;
+                if(!state.currentSurvey.status) state.currentSurvey.status = 'published';
+            }
+            
+            state.view = view;
+            state.formData = {};
+            state.filterCollector = '';
+            window.scrollTo(0,0);
+            render();
+        }
+
+        window.switchResultTab = (tab) => {
+            state.resultsTab = tab;
+            render();
+        };
+
+        window.updateCell = (respId, qId, cell, type) => {
+            const val = cell.innerText;
+            const surveyId = state.currentSurvey.id;
+            const resp = state.responses[surveyId].find(r => r.id === respId);
+            if (resp) {
+                if (type === 'number') { const num = parseFloat(val); resp.data[qId] = isNaN(num) ? val : num; } 
+                else { resp.data[qId] = val; }
+                saveData();
+                showToast("Valeur mise à jour");
+            }
+        };
+
+        window.updateAxisLabel = (qId, axis, value) => {
+            const sec = state.currentSurvey.sections.find(s => s.questions.some(q => q.id === qId));
+            const q = sec.questions.find(q => q.id === qId);
+            if (!q.chartOptions) q.chartOptions = {};
+            q.chartOptions[axis] = value;
+            saveData();
+        };
+
+        function createNewSurvey() {
+            const newSurvey = {
+                id: Date.now().toString(),
+                title: 'Nouvelle enquête',
+                description: '',
+                sections: [{ id: Date.now().toString(), name: 'Section Principale', questions: [] }],
+                createdAt: new Date().toISOString(),
+                status: 'draft'
+            };
+            state.currentSurvey = newSurvey;
+            navigateTo('create');
+        }
+
+        function saveDraft() {
+            if (!state.currentSurvey) return;
+            const existingIdx = state.surveys.findIndex(s => s.id === state.currentSurvey.id);
+            if (existingIdx >= 0) state.surveys[existingIdx] = state.currentSurvey;
+            else state.surveys.push(state.currentSurvey);
+            saveData();
+            if (state.currentSurvey.status === 'draft') showToast("Brouillon sauvegardé", "warning");
+        }
+
+        function submitResponse() {
+            if (!state.collectorName && state.isOfflineMode) {
+                showToast("Veuillez renseigner votre nom de collecteur.", "error");
+                const input = document.getElementById('collector-name-input');
+                if(input) { input.focus(); input.scrollIntoView({behavior: "smooth"}); }
+                return;
+            }
+            const allQuestions = state.currentSurvey.sections.flatMap(s => s.questions);
+            for (const q of allQuestions) {
+                if (q.required) {
+                    const val = state.formData[q.id];
+                    if (val === undefined || val === "" || (Array.isArray(val) && val.length === 0)) {
+                        showToast(`Question manquante : "${q.label}"`, 'error');
+                        // Scroll vers la question
+                        const el = document.querySelector(`[data-qid="${q.id}"]`);
+                        if(el) el.closest('.input-group').scrollIntoView({behavior: "smooth", block: "center"});
+                        return;
+                    }
+                }
+            }
+            const surveyId = state.currentSurvey.id;
+            if (!state.responses[surveyId]) state.responses[surveyId] = [];
+            state.responses[surveyId].push({
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                collector: state.collectorName || 'Admin',
+                data: state.formData
+            });
+            saveData();
+            showToast("Réponse enregistrée !", "success");
+            setTimeout(() => { state.isOfflineMode ? navigateTo('offline-home') : navigateTo('list'); }, 1000);
+        }
+
+        // --- GESTION IMPORT / EXPORT ---
+
+        function exportSurveyStructure(surveyId) {
+            const survey = state.surveys.find(s => s.id === surveyId);
+            const fileName = `STRUCT_${survey.title.replace(/[^a-z0-9]/gi, '_')}.json`;
+            downloadFile(JSON.stringify(survey, null, 2), fileName, 'application/json');
+            showToast("Structure exportée.");
+        }
+
+        function openImportStructModal() { document.getElementById('import-struct-modal').classList.remove('hidden'); }
+        function closeStructModal() { document.getElementById('import-struct-modal').classList.add('hidden'); document.getElementById('import-struct-file').value = ''; }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const structInput = document.getElementById('import-struct-file');
+            if(structInput) {
+                structInput.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        try {
+                            const newSurvey = JSON.parse(ev.target.result);
+                            if(!newSurvey.sections || !newSurvey.title) throw new Error("Format invalide");
+                            newSurvey.id = Date.now().toString(); 
+                            newSurvey.title += " (Import)";
+                            state.surveys.push(newSurvey);
+                            saveData();
+                            render();
+                            showToast("Questionnaire importé");
+                        } catch(err) { showToast("Fichier invalide", "error"); }
+                        closeStructModal();
+                    };
+                    reader.readAsText(file);
+                });
+            }
+        });
+
+        function exportSyncData() {
+            const sId = state.currentSurvey.id;
+            const responses = state.responses[sId] || [];
+            if (responses.length === 0) { showToast("Aucune réponse à exporter.", "warning"); return; }
+            
+            const isMaster = !state.isOfflineMode;
+            const label = isMaster ? "MASTER" : (state.collectorName || "ANON");
+
+            const syncPacket = {
+                type: 'sahelstats_sync',
+                surveyId: sId,
+                collector: label,
+                exportedAt: new Date().toISOString(),
+                responses: responses
+            };
+            const fileName = `SYNC_${state.currentSurvey.title.substring(0,10)}_${label}_${responses.length}.json`;
+            downloadFile(JSON.stringify(syncPacket, null, 2), fileName, 'application/json');
+            showToast("Fichier Sync généré.");
+        }
+
+        function triggerImport() { document.getElementById('import-modal').classList.remove('hidden'); }
+        function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); document.getElementById('import-file').value = ''; document.getElementById('import-status').innerHTML=''; }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileInput = document.getElementById('import-file');
+            if(fileInput) {
+                fileInput.addEventListener('change', async (e) => {
+                    const files = Array.from(e.target.files);
+                    if (files.length === 0) return;
+
+                    let totalAdded = 0;
+                    let totalSkipped = 0;
+                    let errors = 0;
+
+                    const statusDiv = document.getElementById('import-status');
+                    statusDiv.innerHTML = "Traitement...";
+
+                    for (const file of files) {
+                        try {
+                            const text = await readFileAsync(file);
+                            const packet = JSON.parse(text);
+                            const result = processSyncPacket(packet, true); 
+                            if(result) {
+                                totalAdded += result.added;
+                                totalSkipped += result.skipped;
+                            } else {
+                                errors++;
+                            }
+                        } catch (err) {
+                            errors++;
+                        }
+                    }
+
+                    saveData();
+                    render();
+                    closeImportModal();
+                    
+                    let msg = `+${totalAdded} ajoutés, ${totalSkipped} doublons.`;
+                    if(errors > 0) msg += ` (${errors} err)`;
+                    showToast(msg, totalAdded > 0 ? "success" : "warning");
+                });
+            }
+        });
+
+        function readFileAsync(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function processSyncPacket(packet, silent = false) {
+            if (packet.type !== 'sahelstats_sync') { if(!silent) showToast("Format invalide", "error"); return null; }
+            if (packet.surveyId !== state.currentSurvey.id) { if(!silent) showToast("Mauvaise enquête", "error"); return null; }
+
+            const currentResponses = state.responses[state.currentSurvey.id] || [];
+            let addedCount = 0;
+            let skippedCount = 0;
+
+            packet.responses.forEach(newResp => {
+                const exists = currentResponses.find(r => r.id === newResp.id);
+                if (!exists) { currentResponses.push(newResp); addedCount++; } else { skippedCount++; }
+            });
+
+            state.responses[state.currentSurvey.id] = currentResponses;
+            
+            if(!silent) {
+                saveData();
+                render();
+                let msg = `+${addedCount} ajouts, ${skippedCount} doublons`;
+                showToast(msg, addedCount > 0 ? "success" : "warning");
+            }
+            return { added: addedCount, skipped: skippedCount };
+        }
+
+        function getCleanData(surveyId) {
+            const survey = state.currentSurvey || state.surveys.find(s => s.id === surveyId);
+            const responses = state.responses[survey.id] || [];
+            
+            let filteredResponses = responses;
+            if(state.filterCollector) {
+                filteredResponses = responses.filter(r => (r.collector || 'Admin') === state.filterCollector);
+            }
+
+            const allQuestions = survey.sections.flatMap(s => s.questions);
+            return { survey, responses: filteredResponses, allQuestions };
+        }
+
+        function exportToExcel(surveyId) {
+            const { survey, responses, allQuestions } = getCleanData(surveyId);
+            if (!responses.length) { showToast("Rien à exporter", "error"); return; }
+            const data = responses.map(r => {
+                let row = { 'ID': r.id, 'Collecteur': r.collector || 'N/A', 'Date': new Date(r.timestamp).toLocaleString() };
+                allQuestions.forEach(q => {
+                    let v = r.data[q.id];
+                    row[q.label] = Array.isArray(v) ? v.join('; ') : v;
+                });
+                return row;
+            });
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Données");
+            XLSX.writeFile(wb, `Export_${survey.title}.xlsx`);
+        }
+
+        function getQuantile(sortedArr, q) {
+            const pos = (sortedArr.length - 1) * q;
+            const base = Math.floor(pos);
+            const rest = pos - base;
+            if ((sortedArr[base + 1] !== undefined)) {
+                return sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base]);
+            } else {
+                return sortedArr[base];
+            }
+        }
+
+        function exportToWord(surveyId) {
+            const { survey, responses, allQuestions } = getCleanData(surveyId);
+            if (responses.length === 0) { showToast("Aucune donnée.", "error"); return; }
+            if (state.resultsTab !== 'analysis') { showToast("Allez sur l'onglet 'Analyse' d'abord.", "info"); return; }
+            
+            showToast("Génération Word...");
+            const titleSuffix = state.filterCollector ? `<br><span style="font-size:0.6em; color:#666;">Filtre : ${state.filterCollector}</span>` : "";
+            
+            let htmlBody = `<div style="font-family: Arial, padding: 20px;"><h1 style="color:#4F46E5;text-align:center;">${survey.title}${titleSuffix}</h1><p style="text-align:center;">Total: ${responses.length}</p><hr/>`;
+            
+            allQuestions.forEach((q, idx) => {
+                htmlBody += `<h2 style="color:#1e293b;margin-top:30px;border-bottom:2px solid #e2e8f0;">${idx+1}. ${q.label}</h2>`;
+                const data = responses.map(r => r.data[q.id]).filter(v => v !== undefined && v !== "");
+                
+                if (['select', 'radio', 'checkbox'].includes(q.type)) {
+                    const canvas = document.getElementById(`chart-${q.id}`);
+                    if (canvas) {
+                        try { htmlBody += `<div style="text-align:center;"><img src="${canvas.toDataURL("image/png")}" width="500"/></div>`; } 
+                        catch(e) {}
+                    }
+                } 
+                else if (q.type === 'number') {
+                    const nums = data.map(v => parseFloat(v)).filter(v => !isNaN(v));
+                    if (nums.length > 0) {
+                        const sum = nums.reduce((a,b)=>a+b, 0); 
+                        const avg = (sum / nums.length).toFixed(2);
+                        nums.sort((a,b) => a-b);
+                        const min = nums[0];
+                        const max = nums[nums.length-1];
+                        const q1 = getQuantile(nums, 0.25).toFixed(2);
+                        const q2 = getQuantile(nums, 0.50).toFixed(2);
+                        const q3 = getQuantile(nums, 0.75).toFixed(2);
+
+                        htmlBody += `
+                        <table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse: collapse; font-family: Arial; margin-top:10px;">
+                            <tr style="background-color:#f1f5f9;"><th>Moyenne</th><th>Somme</th><th>Min</th><th>Q1</th><th>Med</th><th>Q3</th><th>Max</th></tr>
+                            <tr>
+                                <td align="center">${avg}</td><td align="center">${sum}</td><td align="center">${min}</td>
+                                <td align="center">${q1}</td><td align="center">${q2}</td><td align="center">${q3}</td>
+                                <td align="center">${max}</td>
+                            </tr>
+                        </table>`;
+                    } else {
+                        htmlBody += `<p>Aucune donnée numérique valide.</p>`;
+                    }
+                } else {
+                    htmlBody += `<ul>${data.slice(0, 10).map(t=>`<li>${t}</li>`).join('')}</ul>`;
+                    if(data.length > 10) htmlBody += `<p style="font-style:italic;">... et ${data.length - 10} autres.</p>`;
+                }
+            });
+            htmlBody += `</div>`;
+            const blob = new Blob(['\ufeff', "<html xmlns:w='urn:schemas-microsoft-com:office:word'><body>" + htmlBody + "</body></html>"], { type: 'application/msword' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Rapport_${survey.title}.doc`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function exportCollectorsToWord() {
+            const responses = state.responses[state.currentSurvey.id] || [];
+            if(responses.length === 0) { showToast("Aucune donnée.", "error"); return; }
+
+            const counts = {};
+            responses.forEach(r => { const c = r.collector || 'Inconnu'; counts[c] = (counts[c] || 0) + 1; });
+            const labels = Object.keys(counts); const data = Object.values(counts);
+
+            const canvas = document.getElementById('coll-chart');
+            let imgTag = "";
+            if(canvas) {
+                try { imgTag = `<div style="text-align:center; margin:20px;"><img src="${canvas.toDataURL("image/png")}" width="600"/></div>`; } 
+                catch(e){}
+            }
+
+            let tableHtml = `
+            <table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse: collapse; font-family: Arial;">
+                <tr style="background-color:#f1f5f9;"><th>Collecteur</th><th>Nb</th><th>%</th></tr>
+            `;
+            labels.forEach((l, i) => {
+                const pct = ((data[i] / responses.length) * 100).toFixed(1);
+                tableHtml += `<tr><td>${l}</td><td align="center">${data[i]}</td><td align="center">${pct}%</td></tr>`;
+            });
+            tableHtml += `</table>`;
+
+            let htmlBody = `
+            <div style="font-family: Arial, padding: 20px;">
+                <h1 style="color:#4F46E5;text-align:center;">Rapport Collecteurs</h1>
+                <h2 style="text-align:center; color:#666;">${state.currentSurvey.title}</h2>
+                <hr/>
+                ${imgTag}
+                <h3>Détail</h3>
+                ${tableHtml}
+            </div>`;
+
+            const blob = new Blob(['\ufeff', "<html xmlns:w='urn:schemas-microsoft-com:office:word'><body>" + htmlBody + "</body></html>"], { type: 'application/msword' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Performance_${state.currentSurvey.title}.doc`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type: type + ';charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url);
+        }
+
+        function downloadOfflineApp(surveyId) {
+            const survey = state.surveys.find(s => s.id === surveyId);
+            const html = document.documentElement.outerHTML;
+            const finalHtml = html
+                .replace("const embeddedSurveyData = null;", `const embeddedSurveyData = ${JSON.stringify(survey)};`)
+                .replace("const isLockedMode = false;", "const isLockedMode = true;");
+            downloadFile(finalHtml, `App_Collecte_${survey.title.replace(/[^a-z0-9]/gi, '_')}.html`, 'text/html');
+            showToast("App Collecteur téléchargée !");
+        }
+
+        function showToast(msg, type='success') {
+            const t = document.createElement('div'); t.className = `toast ${type}`; t.innerHTML = `<span>${type==='success'?'✅':(type==='error'?'⚠️':'ℹ️')}</span> ${msg}`;
+            document.getElementById('toast-container').appendChild(t); setTimeout(() => t.remove(), 3000);
+        }
+        function showConfirm(msg, cb) {
+            document.getElementById('modal-msg').textContent = msg;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            document.getElementById('modal-confirm').onclick = () => { cb(); document.getElementById('confirm-modal').classList.add('hidden'); };
+            document.getElementById('modal-cancel').onclick = () => document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        // --- Rendu Vues ---
+        function render() {
+            const app = document.getElementById('app'); app.innerHTML = '';
+            const views = {
+                'list': renderList, 'create': renderCreate, 'collect': renderCollect,
+                'preview': renderPreview, 'results': renderResults, 'offline-home': renderOfflineHome
+            };
+            if(views[state.view]) views[state.view](app);
+        }
+
+        function renderList(app) {
+            app.innerHTML = `
+                <div class="flex-between" style="margin-bottom:2rem;">
+                    <div><h3>Dr. MAGAGI ALI Bachir</h3><h1 style="font-size:1.8rem;">Mes Enquêtes</h1></div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="openImportStructModal()">📥 Importer</button>
+                        <button class="btn btn-primary" onclick="createNewSurvey()">+ Créer</button>
+                    </div>
+                </div>
+                ${state.surveys.length === 0 ? '<div class="card" style="text-align:center; padding:3rem;">Aucune enquête.</div>' : 
+                `<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.25rem;">
+                    ${state.surveys.map(s => {
+                        const count = (state.responses[s.id]||[]).length;
+                        return `
+                        <div class="card" style="border-top:4px solid var(--primary); height:100%; display:flex; flex-direction:column;">
+                            <div style="flex:1;">
+                                <div class="flex-between">
+                                    <h3 style="color:var(--secondary); margin-bottom:0.5rem; word-break:break-word;">${s.title}  
+                                        <button class="btn btn-ghost" style="font-size:0.65rem;" onclick="exportSurveyStructure('${s.id}')" title="Exporter le Questionnaire (JSON)">📤Exporter</button>
+                                         <button class="btn btn-ghost" style="font-size:0.65rem;color:var(--danger)" onclick="deleteSurvey('${s.id}')">🗑️Supprimer</button>
+                                    </h3>${s.status==='draft'?'<span class="badge badge-draft">Brouillon</span>':'<span class="badge badge-published">Publié</span>'}
+                                </div>
+                                <p class="text-sm" style="color:var(--text-muted); margin-bottom:1rem; min-height:40px;">${s.description||'...'}</p>
+                                <div style="background:#f8fafc; padding:0.5rem; border-radius:4px; margin-bottom:1rem; font-size:0.85rem;"><strong>${count}</strong> Réponses</div>
+                            </div>
+                            <div class="flex-start" style="gap:0.05rem;">
+                                ${s.status==='draft' ? '' : `<button class="btn btn-primary btn-sm" onclick="navigateTo('collect', '${s.id}')" style="font-size:0.65rem">Collecte</button>`}
+                                <button class="btn btn-secondary btn-sm" onclick="navigateTo('results', '${s.id}')" style="font-size:0.65rem">Résultats</button>
+                                <button class="btn btn-ghost" onclick="navigateTo('create', '${s.id}')" style="font-size:0.65rem">✏️Editer</button>
+                                ${s.status!=='draft' ? `<button class="btn btn-ghost" onclick="downloadOfflineApp('${s.id}')" title="Collecter hors ligne" style="font-size:0.65rem">📲Collecte Offline</button>` : ''}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`}
+            `;
+            window.deleteSurvey = (id) => showConfirm("Supprimer l'enquête et TOUTES les données ?", () => {
+                state.surveys = state.surveys.filter(s => s.id !== id); delete state.responses[id]; saveData(); render();
+            });
+        }
+
+        function renderCreate(app) {
+            const s = state.currentSurvey;
+            app.innerHTML = `
+                <div class="flex-between" style="margin-bottom:1.5rem;">
+                    <button class="btn btn-secondary" onclick="navigateTo('list')">← Retour</button>
+                    <h1>${s.id ? 'Éditer' : 'Créer'}</h1>
+                    <div class="flex-end">
+                        <button class="btn btn-info" onclick="navigateTo('preview')">👁️ Voir</button>
+                        <button class="btn btn-primary" onclick="saveAndPublish()">💾 Publier</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="input-group"><label>Titre</label><input class="form-control" value="${s.title}" oninput="state.currentSurvey.title=this.value"></div>
+                    <div class="input-group"><label>Description</label><textarea class="form-control" oninput="state.currentSurvey.description=this.value">${s.description}</textarea></div>
+                </div>
+                <div id="sections-editor"></div>
+                <button class="btn btn-secondary btn-block-mobile" style="width:100%; border-style:dashed; margin-top:1rem;" onclick="addSection()">+ Ajouter Section</button>
+            `;
+            renderSectionsEditor();
+            window.saveAndPublish = () => { state.currentSurvey.status = 'published'; saveDraft(); showToast("Publié !"); navigateTo('list'); };
+        }
+
+        // --- DnD Implementation ---
+        window.handleDragStart = (e, secId, qIndex) => {
+            draggedQ = { secId, qIndex };
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.style.opacity = '0.5';
+        };
+        window.handleDragEnd = (e) => {
+            e.target.style.opacity = '1';
+            document.querySelectorAll('.card').forEach(el => el.classList.remove('drag-over'));
+        };
+        window.handleDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+        window.handleDragEnter = (e) => { e.target.closest('.q-card')?.classList.add('drag-over'); };
+        window.handleDragLeave = (e) => { e.target.closest('.q-card')?.classList.remove('drag-over'); };
+        
+        window.handleDrop = (e, targetSecId, targetIndex) => {
+            e.preventDefault();
+            if (!draggedQ) return;
+            const sourceSec = state.currentSurvey.sections.find(s => s.id === draggedQ.secId);
+            const targetSec = state.currentSurvey.sections.find(s => s.id === targetSecId);
+            const [movedQ] = sourceSec.questions.splice(draggedQ.qIndex, 1);
+            let finalIndex = targetIndex;
+            targetSec.questions.splice(finalIndex, 0, movedQ);
+            draggedQ = null;
+            saveDraft();
+            renderSectionsEditor();
+        };
+
+        function renderSectionsEditor() {
+            const container = document.getElementById('sections-editor');
+            const types = [{v:'text',l:'Texte'},{v:'number',l:'Nb'},{v:'select',l:'Liste'},{v:'radio',l:'Radio'},{v:'checkbox',l:'Case'},{v:'date',l:'Date'}];
+            
+            container.innerHTML = state.currentSurvey.sections.map(sec => `
+                <div class="card" style="border-left:4px solid var(--text-muted);" ondragover="handleDragOver(event)" ondrop="handleDrop(event, '${sec.id}', ${sec.questions.length})">
+                    <div class="flex-between" style="margin-bottom:1rem;">
+                        <input class="form-control" style="font-weight:bold; width:auto; max-width:200px;" value="${sec.name}" onchange="updateSec('${sec.id}', this.value)">
+                        <button class="btn btn-ghost" style="color:var(--danger)" onclick="delSec('${sec.id}')">🗑️</button>
+                    </div>
+                    ${sec.questions.map((q, idx) => `
+                        <div class="q-card"
+                             draggable="true" 
+                             ondragstart="handleDragStart(event, '${sec.id}', ${idx})"
+                             ondragend="handleDragEnd(event)"
+                             ondragenter="handleDragEnter(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="event.stopPropagation(); handleDrop(event, '${sec.id}', ${idx})">
+                            
+                            <div class="drag-handle">☰</div>
+                            
+                            <div style="flex:1; display:flex; flex-direction:column; gap:0.5rem;">
+                                <div class="flex-between" style="gap:0.5rem; align-items:flex-start;">
+                                    <input class="form-control" value="${q.label}" placeholder="Question" onchange="updQ('${sec.id}','${q.id}','label',this.value)" style="flex:1; min-width:120px;">
+                                    <button class="btn btn-ghost" style="color:red; padding:0.2rem;" onclick="delQ('${sec.id}','${q.id}')">✕</button>
+                                </div>
+                                <div class="flex-between" style="gap:0.5rem;">
+                                    <select class="form-control" style="width:100%;" onchange="updQ('${sec.id}','${q.id}','type',this.value)">
+                                        ${types.map(t => `<option value="${t.v}" ${q.type===t.v?'selected':''}>${t.l}</option>`).join('')}
+                                    </select>
+                                    <label style="display:flex; align-items:center; gap:0.25rem; font-size:0.85rem; cursor:pointer; white-space:nowrap;">
+                                        <input type="checkbox" style="transform:scale(1.2);" ${q.required?'checked':''} onchange="updQ('${sec.id}','${q.id}','required',this.checked)"> Obligatoire
+                                    </label>
+                                </div>
+                                ${['select','radio','checkbox'].includes(q.type) ? `<input class="form-control" placeholder="Options (a,b,c)" value="${q.options.join(',')}" onchange="updQ('${sec.id}','${q.id}','options',this.value)">` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-secondary btn-sm" onclick="addQ('${sec.id}')">+ Question</button>
+                </div>
+            `).join('');
+
+            window.addSection = () => { state.currentSurvey.sections.push({id:Date.now().toString(), name:'Nouvelle Section', questions:[]}); renderSectionsEditor(); };
+            window.delSec = (id) => { state.currentSurvey.sections = state.currentSurvey.sections.filter(s=>s.id!==id); renderSectionsEditor(); };
+            window.updateSec = (id,v) => { state.currentSurvey.sections.find(s=>s.id===id).name=v; };
+            window.addQ = (sid) => { state.currentSurvey.sections.find(s=>s.id===sid).questions.push({id:Date.now().toString(), type:'text', label:'', options:[], required:false}); renderSectionsEditor(); };
+            window.delQ = (sid,qid) => { const s=state.currentSurvey.sections.find(s=>s.id===sid); s.questions=s.questions.filter(q=>q.id!==qid); renderSectionsEditor(); };
+            window.updQ = (sid,qid,f,v) => { const q=state.currentSurvey.sections.find(s=>s.id===sid).questions.find(q=>q.id===qid); if(f==='options') q.options=v.split(',').map(o=>o.trim()); else q[f]=v; if(f==='type') renderSectionsEditor(); };
+        }
+
+        function renderPreview(app) {
+            app.innerHTML = `
+                <div style="max-width:800px; margin:0 auto;">
+                    <div class="card flex-between" style="background:var(--primary-light); border:1px solid var(--primary); margin-bottom:2rem;">
+                        <h3 style="color:var(--primary-dark);margin:0;">👁️ Prévisualisation</h3>
+                        <button class="btn btn-primary" onclick="navigateTo('create')">✏️ Retour</button>
+                    </div>
+                    ${renderSurveyForm(state.currentSurvey, true)}
+                </div>
+            `;
+        }
+
+        function renderCollect(app) {
+            const s = state.currentSurvey;
+            app.innerHTML = `
+                <div style="max-width:800px; margin:0 auto;">
+                    <div class="flex-between" style="margin-bottom:1rem;">
+                        <button class="btn btn-ghost" onclick="state.isOfflineMode ? navigateTo('offline-home') : navigateTo('list')">← Annuler</button>
+                        <span class="badge badge-published">Mode Saisie</span>
+                    </div>
+                    <div class="card" style="border-left:4px solid var(--info);">
+                        <label>👤 Nom du Collecteur</label>
+                        <input type="text" id="collector-name-input" class="form-control" placeholder="Ex: Jean" value="${state.collectorName}" oninput="state.collectorName=this.value">
+                    </div>
+                    <div class="card" style="text-align:center;">
+                        <h1 style="font-size:1.5rem;">${s.title}</h1>
+                        <p class="text-sm">${s.description}</p>
+                    </div>
+                    <form id="collect-form">
+                        ${renderSurveyForm(s, false)}
+                        <div style="margin-top:2rem; padding-bottom:3rem;">
+                            <button type="button" class="btn btn-primary btn-block-mobile" style="width:100%; padding:1rem; font-size:1.1rem;" onclick="submitResponse()">✅ Envoyer la réponse</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            attachFormListeners();
+        }
+
+        function renderSurveyForm(survey, disabled) {
+            return survey.sections.map(sec => `
+                <h3 style="margin:1.5rem 0 1rem; color:var(--primary); font-size:1.1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">${sec.name}</h3>
+                <div class="card">
+                    ${sec.questions.map(q => {
+                        const req = q.required ? '<span style="color:red">*</span>' : '';
+                        let input = ''; const dis = disabled ? 'disabled' : '';
+                        const comClass = "form-control";
+                        
+                        if(['text','number','date','email'].includes(q.type)) input = `<input type="${q.type}" class="${comClass}" data-qid="${q.id}" ${dis} style="min-height:45px;">`;
+                        else if(q.type==='textarea') input = `<textarea class="${comClass}" rows="3" data-qid="${q.id}" ${dis}></textarea>`;
+                        else if(q.type==='select') input = `<select class="${comClass}" data-qid="${q.id}" ${dis} style="min-height:45px;"><option value="">-- Sélectionner --</option>${q.options.map(o=>`<option>${o}</option>`).join('')}</select>`;
+                        else if(q.type==='radio') input = `<div style="display:flex; flex-direction:column; gap:0.5rem;">${q.options.map(o=>`<label style="display:flex; align-items:center; padding:0.5rem; background:#f8fafc; border-radius:4px;"><input type="radio" name="${q.id}" value="${o}" data-qid="${q.id}" ${dis}> ${o}</label>`).join('')}</div>`;
+                        else if(q.type==='checkbox') input = `<div style="display:flex; flex-direction:column; gap:0.5rem;">${q.options.map(o=>`<label style="display:flex; align-items:center; padding:0.5rem; background:#f8fafc; border-radius:4px;"><input type="checkbox" value="${o}" data-qid="${q.id}" data-is-check="true" ${dis}> ${o}</label>`).join('')}</div>`;
+                        
+                        return `<div class="input-group"><label>${q.label} ${req}</label>${input}</div>`;
+                    }).join('')}
+                </div>
+            `).join('');
+        }
+
+        function attachFormListeners() {
+            const form = document.getElementById('collect-form'); if(!form) return;
+            // On retire le focus automatique sur mobile pour éviter que le clavier ne saute
+            form.addEventListener('change', e => {
+                const t = e.target; const qid = t.dataset.qid;
+                if(!qid) return;
+                if(t.type==='checkbox') {
+                    if(!state.formData[qid]) state.formData[qid]=[];
+                    if(t.checked) state.formData[qid].push(t.value); else state.formData[qid] = state.formData[qid].filter(v=>v!==t.value);
+                } else if(t.type==='number') { state.formData[qid] = t.value === "" ? "" : parseFloat(t.value);
+                } else if(t.type==='radio') { if(t.checked) state.formData[qid] = t.value;
+                } else { state.formData[qid] = t.value; }
+            });
+            form.addEventListener('input', e => { 
+                if(e.target.type !== 'checkbox' && e.target.type !== 'radio' && e.target.tagName !== 'SELECT') { 
+                    const qid = e.target.dataset.qid; if(qid) state.formData[qid] = e.target.value; 
+                } 
+            });
+        }
+
+        function renderResults(app) {
+            const responses = state.responses[state.currentSurvey.id] || [];
+            app.innerHTML = `
+                <div class="flex-between" style="margin-bottom:1rem;">
+                    <button class="btn btn-secondary" onclick="state.isOfflineMode ? navigateTo('offline-home') : navigateTo('list')">← Retour</button>
+                    <h1>Résultats</h1>
+                    <div class="flex-end header-actions">
+                        <button class="btn btn-warning" onclick="triggerImport()">📥 Import</button>
+                        <button class="btn btn-secondary" onclick="exportSyncData()">📤 Sync</button>
+                        <button class="btn btn-success" onclick="exportToExcel('${state.currentSurvey.id}')">Excel</button>
+                    </div>
+                </div>
+                <div class="tabs-container">
+                    <button class="tab-btn ${state.resultsTab === 'data' ? 'active' : ''}" onclick="switchResultTab('data')">📋 Données</button>
+                    <button class="tab-btn ${state.resultsTab === 'analysis' ? 'active' : ''}" onclick="switchResultTab('analysis')">📈 Analyses</button>
+                    <button class="tab-btn ${state.resultsTab === 'collectors' ? 'active' : ''}" onclick="switchResultTab('collectors')">👥 Collecteurs</button>
+                </div>
+                ${responses.length === 0 ? '<div class="card" style="text-align:center; padding:2rem;">Aucune donnée.</div>' : (
+                    state.resultsTab === 'data' ? renderDataTable(responses) : (state.resultsTab === 'analysis' ? renderAnalysis(responses) : renderCollectorAnalysis(responses))
+                )}
+            `;
+        }
+
+        function renderDataTable(responses) {
+            const allQ = state.currentSurvey.sections.flatMap(s => s.questions);
+            return `
+                <p class="text-sm" style="margin-bottom:0.5rem;">ℹ️ Glissez horizontalement pour voir tout.</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>#</th><th>Collecteur</th><th>Date</th>${allQ.map(q=>`<th>${q.label}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            ${responses.map((r,i) => `
+                                <tr><td>${i+1}</td><td><span class="badge" style="background:#e0e7ff; color:#4338ca;">${r.collector || 'Admin'}</span></td><td>${new Date(r.timestamp).toLocaleDateString()}</td>
+                                ${allQ.map(q => { let v=r.data[q.id]; let d=Array.isArray(v)?v.join(','):(v??''); return `<td contenteditable="true" onblur="updateCell('${r.id}', '${q.id}', this, '${q.type}')">${d}</td>`; }).join('')}
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        window.filterAnalysis = (collector) => {
+            state.filterCollector = collector;
+            const allResp = state.responses[state.currentSurvey.id] || [];
+            const filtered = collector ? allResp.filter(r => (r.collector || 'Admin') === collector) : allResp;
+            const allQ = state.currentSurvey.sections.flatMap(s => s.questions);
+            initCharts(filtered, allQ);
+        };
+
+        function renderAnalysis(responses) {
+            const allQ = state.currentSurvey.sections.flatMap(s => s.questions);
+            const collectors = [...new Set(responses.map(r => r.collector || 'Admin'))].sort();
+
+            setTimeout(() => {
+                if(state.filterCollector) window.filterAnalysis(state.filterCollector);
+                else initCharts(responses, allQ);
+            }, 100);
+
+            return `
+                <div class="card flex-between" style="padding:1rem;">
+                    <div class="input-group" style="margin-bottom:0; width:100%; max-width:300px;">
+                        <label>Filtre Collecteur :</label>
+                        <select class="form-control" onchange="filterAnalysis(this.value)">
+                            <option value="">-- Tous --</option>
+                            ${collectors.map(c => `<option value="${c}" ${state.filterCollector===c?'selected':''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                    <button class="btn btn-info btn-block-mobile" onclick="exportToWord('${state.currentSurvey.id}')">📄 Word</button>
+                </div>
+
+                <div class="analysis-grid">
+                    ${allQ.map(q => `
+                        <div class="card" style="display:flex; flex-direction:column; padding:1rem;">
+                            <h3 style="font-size:1rem; margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem; word-break:break-word;">${q.label}</h3>
+                            <div style="flex:1;" id="analysis-${q.id}">
+                                ${['select', 'radio', 'checkbox'].includes(q.type) ? `
+                                    <div class="chart-container"><canvas id="chart-${q.id}"></canvas></div>
+                                    <div class="axis-inputs">
+                                        <input placeholder="Titre Axe X" value="${q.chartOptions?.axisX || ''}" onchange="updateAxisLabel('${q.id}', 'axisX', this.value)">
+                                        <input placeholder="Titre Axe Y" value="${q.chartOptions?.axisY || ''}" onchange="updateAxisLabel('${q.id}', 'axisY', this.value)">
+                                    </div>` : ''}
+                                ${q.type === 'number' ? `<div id="stats-${q.id}"></div>` : ''}
+                                ${['text', 'textarea', 'email', 'date'].includes(q.type) ? `<div id="list-${q.id}" style="max-height:200px; overflow-y:auto;"></div>` : ''}
+                            </div>
+                        </div>`).join('')}
+                </div>
+            `;
+        }
+
+        function renderCollectorAnalysis(responses) {
+            const counts = {};
+            responses.forEach(r => { const c = r.collector || 'Inconnu'; counts[c] = (counts[c] || 0) + 1; });
+            const labels = Object.keys(counts); const data = Object.values(counts);
+            
+            setTimeout(() => {
+                if (typeof Chart === 'undefined') return;
+                const ctx = document.getElementById('coll-chart');
+                if(ctx) {
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: { labels, datasets: [{ label: 'Réponses', data, backgroundColor: '#4F46E5' }] },
+                        options: { responsive: true, plugins: { legend: { display: false } } }
+                    });
+                }
+            }, 100);
+
+            return `
+                <div class="analysis-grid">
+                    <div class="card">
+                        <h3>Répartition</h3>
+                        <div class="chart-container"><canvas id="coll-chart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="flex-between" style="margin-bottom:1rem;">
+                            <h3>Détails</h3>
+                            <button class="btn btn-info btn-sm" onclick="exportCollectorsToWord()">📄 Word</button>
+                        </div>
+                        <div class="table-wrapper">
+                            <table><thead><tr><th>Collecteur</th><th>Réponses</th><th>%</th></tr></thead><tbody>
+                                ${labels.map((l,i) => `<tr><td>${l}</td><td>${data[i]}</td><td>${((data[i]/responses.length)*100).toFixed(1)}%</td></tr>`).join('')}
+                            </tbody></table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initCharts(responses, questions, attempt = 0) {
+            if (typeof Chart === 'undefined') {
+                if (attempt < 3) setTimeout(() => initCharts(responses, questions, attempt + 1), 500);
+                return;
+            }
+            if (state.activeCharts) state.activeCharts.forEach(c => c.destroy());
+            state.activeCharts = [];
+
+            questions.forEach(q => {
+                const data = responses.map(r => r.data[q.id]).filter(v => v !== undefined && v !== "");
+                
+                if (['select', 'radio', 'checkbox'].includes(q.type)) {
+                    const counts = {};
+                    data.forEach(v => { if (Array.isArray(v)) v.forEach(i => counts[i] = (counts[i] || 0) + 1); else counts[v] = (counts[v] || 0) + 1; });
+                    const ctx = document.getElementById(`chart-${q.id}`);
+                    if (ctx) {
+                        const newChart = new Chart(ctx, {
+                            type: q.type === 'checkbox' ? 'bar' : 'doughnut',
+                            data: { labels: Object.keys(counts), datasets: [{ label: 'Réponses', data: Object.values(counts), backgroundColor: ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'], borderWidth: 1 }] },
+                            options: { 
+                                responsive: true, 
+                                maintainAspectRatio: false,
+                                plugins: { title: { display: true, text: `X: ${q.chartOptions?.axisX || ''} | Y: ${q.chartOptions?.axisY || ''}` } }
+                            }
+                        });
+                        state.activeCharts.push(newChart);
+                    }
+                }
+                else if (q.type === 'number') {
+                    const nums = data.map(v => parseFloat(v)).filter(v => !isNaN(v));
+                    const container = document.getElementById(`stats-${q.id}`);
+                    if (container) {
+                        if (nums.length > 0) {
+                            const sum = nums.reduce((a,b)=>a+b, 0); const avg = sum / nums.length; const min = Math.min(...nums); const max = Math.max(...nums);
+                            container.innerHTML = `<div class="stat-grid"><div class="stat-box"><div class="stat-num">${avg.toFixed(1)}</div><div class="stat-lbl">Moyenne</div></div><div class="stat-box"><div class="stat-num">${sum}</div><div class="stat-lbl">Somme</div></div><div class="stat-box"><div class="stat-num">${min}</div><div class="stat-lbl">Min</div></div><div class="stat-box"><div class="stat-num">${max}</div><div class="stat-lbl">Max</div></div></div>`;
+                        } else {
+                            container.innerHTML = `<p class="text-sm">Pas de données.</p>`;
+                        }
+                    }
+                }
+                else if (['text', 'textarea', 'email', 'date'].includes(q.type)) {
+                    const container = document.getElementById(`list-${q.id}`);
+                    if (container) container.innerHTML = data.slice(0, 5).map(t => `<div style="padding:0.5rem; background:#f8fafc; margin-bottom:0.25rem; font-size:0.85rem; border-radius:4px; border:1px solid var(--border);">${t}</div>`).join('') + (data.length>5?`<div class="text-sm" style="text-align:center;">+ ${data.length-5} autres...</div>`:'');
+                }
+            });
+        }
+
+        function renderOfflineHome(app) {
+            const count = (state.responses[state.currentSurvey.id] || []).length;
+            app.innerHTML = `
+                <div style="max-width:600px; margin: 1rem auto; padding:0 1rem;">
+                    <div class="badge-offline" style="text-align:center; margin-bottom:1rem; font-size:0.9rem; color:var(--text-muted);">
+                        ⚠️ Mode Offline actif
+                    </div>
+                    <div class="card" style="text-align:center; padding:2rem 1.5rem;">
+                        <h1 style="color:var(--primary); margin-bottom:0.5rem; font-size:1.5rem;">${state.currentSurvey.title}</h1>
+                        <div style="margin-bottom:2rem; padding:1rem; background:#f8fafc; border-radius:8px; border:1px solid var(--border);">
+                            <p>Collecteur : <strong style="color:var(--primary);">${state.collectorName||"Non défini"}</strong></p>
+                            <p style="font-size:2.5rem; font-weight:800; color:var(--secondary); margin:0.5rem 0;">${count}</p>
+                            <p class="text-sm">Réponses stockées</p>
+                        </div>
+                        <div style="display:grid; gap:1rem;">
+                            <button class="btn btn-primary" style="padding:1rem; font-size:1.1rem;" onclick="navigateTo('collect')">📝 Nouvelle Saisie</button>
+                            <button class="btn btn-info" style="padding:1rem;" onclick="exportSyncData()">📦 Exporter (Sync)</button>
+                            <button class="btn btn-secondary" onclick="navigateTo('results')">📊 Voir mes saisies</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        init();
+    </script>
+</body>
+</html>
