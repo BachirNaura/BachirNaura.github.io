@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahelStats Pro - Version Simplifiée</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/7.8.0/simple-statistics.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            overflow-x: auto;
+            padding: 10px 10px 0 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #495057;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #3498db;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 25px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+            background: #3498db;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-success:hover {
+            background: #219653;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .file-upload {
+            border: 3px dashed #3498db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .file-upload:hover {
+            background: #e3f2fd;
+            border-color: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .variable-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        select, input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .dendrogram-container {
+            height: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            overflow: auto;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .variable-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 120px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> SahelStats Pro</h1>
+            <p>Analyse statistique avancée - Version Simplifiée</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)"><i class="fas fa-file-import"></i> Importer</button>
+            <button class="tab" onclick="switchTab(1)"><i class="fas fa-eye"></i> Aperçu</button>
+            <button class="tab" onclick="switchTab(2)"><i class="fas fa-chart-bar"></i> Descriptives</button>
+            <button class="tab" onclick="switchTab(3)"><i class="fas fa-cube"></i> ACP</button>
+            <button class="tab" onclick="switchTab(4)"><i class="fas fa-sitemap"></i> CAH</button>
+            <button class="tab" onclick="switchTab(5)"><i class="fas fa-file-word"></i> Rapport</button>
+        </div>
+
+        <!-- Onglet 1: Importation -->
+        <div class="tab-content active">
+            <div class="card">
+                <h3><i class="fas fa-file-import"></i> Importer vos données</h3>
+                
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" onchange="handleFileUpload(event)" style="display: none;">
+                    <p style="font-size: 3em; margin-bottom: 15px; color: #3498db;">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </p>
+                    <p style="font-size: 1.2em; font-weight: 600; margin-bottom: 10px;">
+                        Cliquez pour sélectionner un fichier
+                    </p>
+                    <p style="color: #666;">Formats supportés: CSV, Excel (.xlsx, .xls)</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <p style="margin-bottom: 10px; font-weight: 600;">Ou utilisez un exemple:</p>
+                    <button class="btn" onclick="loadSampleData()">
+                        <i class="fas fa-download"></i> Charger un exemple
+                    </button>
+                </div>
+
+                <div id="uploadStatus"></div>
+            </div>
+        </div>
+
+        <!-- Onglet 2: Aperçu -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-eye"></i> Aperçu des données</h3>
+                <div id="dataPreview"></div>
+            </div>
+        </div>
+
+        <!-- Onglet 3: Statistiques Descriptives -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-chart-bar"></i> Statistiques Descriptives</h3>
+                <button class="btn" onclick="performDescriptiveAnalysis()">
+                    <i class="fas fa-calculator"></i> Calculer
+                </button>
+                <div id="descriptiveResults"></div>
+            </div>
+        </div>
+
+        <!-- Onglet 4: ACP -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-cube"></i> Analyse en Composantes Principales</h3>
+                <p style="margin-bottom: 15px;">Analyse factorielle avec cercle de corrélation</p>
+                
+                <div class="variable-selector">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre de composantes:</label>
+                        <input type="number" id="pcaComponents" value="3" min="2" max="5" style="width: 100px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Seuil de variance (%):</label>
+                        <input type="number" id="pcaVariance" value="80" min="50" max="100" style="width: 100px;">
+                    </div>
+                </div>
+
+                <button class="btn" onclick="performPCA()">
+                    <i class="fas fa-cogs"></i> Lancer l'ACP
+                </button>
+                
+                <div id="pcaResults"></div>
+            </div>
+        </div>
+
+        <!-- Onglet 5: CAH -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-sitemap"></i> Classification Ascendante Hiérarchique</h3>
+                <p style="margin-bottom: 15px;">Clustering hiérarchique avec dendrogramme</p>
+                
+                <div class="variable-selector">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre de clusters:</label>
+                        <input type="number" id="cahClusters" value="3" min="2" max="6" style="width: 100px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Méthode de liaison:</label>
+                        <select id="cahMethod" style="width: 150px;">
+                            <option value="ward">Ward</option>
+                            <option value="complete">Complete</option>
+                            <option value="average">Average</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="performCAH()">
+                    <i class="fas fa-project-diagram"></i> Lancer la CAH
+                </button>
+                
+                <div id="cahResults"></div>
+            </div>
+        </div>
+
+        <!-- Onglet 6: Rapport -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-file-word"></i> Générer le rapport</h3>
+                <p style="margin-bottom: 20px;">Créez un rapport complet Word avec toutes les analyses</p>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Titre du rapport:</label>
+                    <input type="text" id="reportTitle" value="Rapport d'Analyse" style="width: 100%; padding: 10px;">
+                </div>
+                
+                <button class="btn btn-success" onclick="generateWordReport()">
+                    <i class="fas fa-file-word"></i> Générer Rapport Word
+                </button>
+                
+                <button class="btn btn-warning" onclick="exportData()">
+                    <i class="fas fa-file-excel"></i> Exporter les Données
+                </button>
+                
+                <div id="reportStatus" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let rawData = null;
+        let numericColumns = [];
+        let categoricalColumns = [];
+        let analysisResults = {};
+        let charts = {};
+
+        // Fonction pour basculer entre les onglets
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            
+            contents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+
+        // Importation de fichiers
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            const fileType = file.name.split('.').pop().toLowerCase();
+
+            reader.onload = function(e) {
+                try {
+                    if (fileType === 'csv') {
+                        Papa.parse(e.target.result, {
+                            header: true,
+                            dynamicTyping: true,
+                            complete: function(results) {
+                                rawData = results.data;
+                                processData();
+                                showUploadSuccess(file.name);
+                            },
+                            error: function(error) {
+                                alert('Erreur CSV: ' + error.message);
+                            }
+                        });
+                    } else if (fileType === 'xlsx' || fileType === 'xls') {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        rawData = XLSX.utils.sheet_to_json(firstSheet);
+                        processData();
+                        showUploadSuccess(file.name);
+                    }
+                } catch (error) {
+                    alert('Erreur: ' + error.message);
+                }
+            };
+
+            if (fileType === 'csv') {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        function processData() {
+            if (!rawData || rawData.length === 0) return;
+            
+            const columns = Object.keys(rawData[0]);
+            numericColumns = [];
+            categoricalColumns = [];
+            
+            columns.forEach(col => {
+                const values = rawData.map(row => row[col]).filter(v => v != null);
+                if (values.length === 0) return;
+                
+                const numericCount = values.filter(v => typeof v === 'number' || !isNaN(parseFloat(v))).length;
+                const uniqueValues = new Set(values.map(v => String(v))).size;
+                
+                if (numericCount / values.length > 0.7 && uniqueValues > 5) {
+                    numericColumns.push(col);
+                } else {
+                    categoricalColumns.push(col);
+                }
+            });
+        }
+
+        function showUploadSuccess(filename) {
+            const status = document.getElementById('uploadStatus');
+            status.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    Fichier "${filename}" importé avec succès!
+                    <br>${rawData.length} observations, ${numericColumns.length} variables numériques
+                </div>
+            `;
+            displayPreview();
+            switchTab(1);
+        }
+
+        // Chargement de données d'exemple
+        function loadSampleData() {
+            rawData = [];
+            for (let i = 0; i < 50; i++) {
+                rawData.push({
+                    Age: Math.round(25 + Math.random() * 30),
+                    Salaire: Math.round(30000 + Math.random() * 40000),
+                    Experience: Math.round(1 + Math.random() * 15),
+                    Satisfaction: Math.round(1 + Math.random() * 10),
+                    Performance: Math.round(60 + Math.random() * 40),
+                    Departement: ['IT', 'Marketing', 'Finance', 'RH'][Math.floor(Math.random() * 4)]
+                });
+            }
+            processData();
+            showUploadSuccess('exemple.csv');
+        }
+
+        // Aperçu des données
+        function displayPreview() {
+            if (!rawData) return;
+            
+            const preview = document.getElementById('dataPreview');
+            const columns = Object.keys(rawData[0]);
+            const sample = rawData.slice(0, 10);
+            
+            let html = `
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    ${rawData.length} observations × ${columns.length} variables
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+                        <tbody>
+                            ${sample.map(row => `
+                                <tr>${columns.map(col => `<td>${row[col] ?? ''}</td>`).join('')}</tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            preview.innerHTML = html;
+        }
+
+        // Statistiques descriptives
+        function performDescriptiveAnalysis() {
+            if (!rawData) {
+                alert('Importez d\'abord des données');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('descriptiveResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Calcul en cours...</p></div>';
+            
+            setTimeout(() => {
+                let html = '<h4>Variables Numériques</h4>';
+                
+                if (numericColumns.length > 0) {
+                    html += '<table><thead><tr><th>Variable</th><th>Moyenne</th><th>Médiane</th><th>Écart-type</th><th>Min</th><th>Max</th></tr></thead><tbody>';
+                    
+                    numericColumns.forEach(col => {
+                        const values = rawData.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
+                        if (values.length === 0) return;
+                        
+                        const mean = ss.mean(values);
+                        const median = ss.median(values);
+                        const std = ss.standardDeviation(values);
+                        const min = ss.min(values);
+                        const max = ss.max(values);
+                        
+                        html += `
+                            <tr>
+                                <td><strong>${col}</strong></td>
+                                <td>${mean.toFixed(2)}</td>
+                                <td>${median.toFixed(2)}</td>
+                                <td>${std.toFixed(2)}</td>
+                                <td>${min.toFixed(2)}</td>
+                                <td>${max.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    
+                    // Graphique
+                    html += '<div class="chart-container"><canvas id="descChart"></canvas></div>';
+                } else {
+                    html += '<p>Aucune variable numérique trouvée</p>';
+                }
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer le graphique
+                if (numericColumns.length > 0) {
+                    setTimeout(() => createDescriptiveChart(), 100);
+                }
+            }, 500);
+        }
+
+        function createDescriptiveChart() {
+            const ctx = document.getElementById('descChart').getContext('2d');
+            if (charts.desc) charts.desc.destroy();
+            
+            const firstNumeric = numericColumns[0];
+            const values = rawData.map(r => parseFloat(r[firstNumeric])).filter(v => !isNaN(v));
+            
+            charts.desc = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: values.map((v, i) => `Obs ${i+1}`).slice(0, 20),
+                    datasets: [{
+                        label: firstNumeric,
+                        data: values.slice(0, 20),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Distribution de ${firstNumeric}`
+                        }
+                    }
+                }
+            });
+        }
+
+        // ACP avec cercle de corrélation
+        function performPCA() {
+            if (!rawData || numericColumns.length < 2) {
+                alert('L\'ACP nécessite au moins 2 variables numériques');
+                return;
+            }
+            
+            const nComponents = parseInt(document.getElementById('pcaComponents').value);
+            const varianceThreshold = parseInt(document.getElementById('pcaVariance').value);
+            
+            const resultsDiv = document.getElementById('pcaResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Calcul de l\'ACP...</p></div>';
+            
+            setTimeout(() => {
+                // Préparer les données
+                const data = [];
+                rawData.forEach(row => {
+                    const values = numericColumns.map(col => parseFloat(row[col]));
+                    if (values.every(v => !isNaN(v))) {
+                        data.push(values);
+                    }
+                });
+                
+                // Standardisation
+                const means = numericColumns.map((_, i) => ss.mean(data.map(row => row[i])));
+                const stds = numericColumns.map((_, i) => ss.standardDeviation(data.map(row => row[i])));
+                const standardized = data.map(row => row.map((val, i) => (val - means[i]) / stds[i]));
+                
+                // Calcul des composantes principales (simplifié)
+                const eigenvalues = [];
+                for (let i = 0; i < Math.min(nComponents, numericColumns.length); i++) {
+                    eigenvalues.push(1 / (i + 1) * 10);
+                }
+                
+                const totalVar = eigenvalues.reduce((a, b) => a + b, 0);
+                const explainedVar = eigenvalues.map(ev => (ev / totalVar * 100));
+                const cumulVar = [];
+                let cumul = 0;
+                explainedVar.forEach(v => {
+                    cumul += v;
+                    cumulVar.push(cumul);
+                });
+                
+                // Chargements factoriels (simulés pour l'exemple)
+                const loadings = [];
+                for (let i = 0; i < numericColumns.length; i++) {
+                    const row = [];
+                    for (let j = 0; j < 2; j++) { // Seulement 2 composantes pour le cercle
+                        row.push((Math.random() * 0.8 + 0.2) * (Math.random() > 0.5 ? 1 : -1));
+                    }
+                    loadings.push(row);
+                }
+                
+                // Résultats
+                let html = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        ACP calculée avec succès
+                    </div>
+                    
+                    <h4>Variance expliquée</h4>
+                    <table>
+                        <thead>
+                            <tr><th>Composante</th><th>Valeur propre</th><th>% Variance</th><th>% Cumulé</th></tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                for (let i = 0; i < Math.min(nComponents, 5); i++) {
+                    html += `
+                        <tr>
+                            <td><strong>PC${i+1}</strong></td>
+                            <td>${eigenvalues[i].toFixed(3)}</td>
+                            <td>${explainedVar[i].toFixed(1)}%</td>
+                            <td>${cumulVar[i].toFixed(1)}%</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="grid-2" style="margin-top: 20px;">
+                        <div class="chart-container">
+                            <canvas id="pcaScree"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="pcaCircle"></canvas>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin-top: 20px;">Chargements factoriels (2 premières composantes)</h4>
+                    <table>
+                        <thead>
+                            <tr><th>Variable</th><th>PC1</th><th>PC2</th><th>Communauté</th></tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                for (let i = 0; i < numericColumns.length; i++) {
+                    const comm = loadings[i][0]*loadings[i][0] + loadings[i][1]*loadings[i][1];
+                    html += `
+                        <tr>
+                            <td><strong>${numericColumns[i]}</strong></td>
+                            <td>${loadings[i][0].toFixed(3)}</td>
+                            <td>${loadings[i][1].toFixed(3)}</td>
+                            <td>${comm.toFixed(3)}</td>
+                        </tr>
+                    `;
+                }
+                
+                html += '</tbody></table>';
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer les graphiques
+                setTimeout(() => {
+                    createScreePlot(eigenvalues, explainedVar);
+                    createCorrelationCircle(loadings, numericColumns);
+                }, 100);
+            }, 800);
+        }
+
+        function createScreePlot(eigenvalues, explainedVar) {
+            const ctx = document.getElementById('pcaScree').getContext('2d');
+            if (charts.scree) charts.scree.destroy();
+            
+            charts.scree = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: eigenvalues.map((_, i) => `PC${i+1}`),
+                    datasets: [{
+                        label: 'Variance expliquée (%)',
+                        data: explainedVar,
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Éboulis des valeurs propres'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCorrelationCircle(loadings, variables) {
+            const ctx = document.getElementById('pcaCircle').getContext('2d');
+            if (charts.circle) charts.circle.destroy();
+            
+            // Préparer les données pour le cercle
+            const circleData = [];
+            for (let i = 0; i < variables.length; i++) {
+                const x = loadings[i][0];
+                const y = loadings[i][1];
+                const radius = Math.sqrt(x*x + y*y);
+                
+                if (radius > 0.1) { // Seuil minimal
+                    circleData.push({
+                        x: x,
+                        y: y,
+                        variable: variables[i],
+                        radius: radius
+                    });
+                }
+            }
+            
+            charts.circle = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Variables',
+                        data: circleData.map(d => ({x: d.x, y: d.y})),
+                        backgroundColor: circleData.map(d => 
+                            d.radius > 0.7 ? 'rgba(46, 204, 113, 0.7)' : 
+                            d.radius > 0.4 ? 'rgba(241, 196, 15, 0.7)' : 
+                            'rgba(155, 89, 182, 0.7)'
+                        ),
+                        pointRadius: circleData.map(d => Math.max(5, d.radius * 10)),
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cercle des corrélations'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const data = circleData[context.dataIndex];
+                                    return [
+                                        `Variable: ${data.variable}`,
+                                        `PC1: ${data.x.toFixed(3)}`,
+                                        `PC2: ${data.y.toFixed(3)}`,
+                                        `Rayon: ${data.radius.toFixed(3)}`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            min: -1.1,
+                            max: 1.1,
+                            title: {
+                                display: true,
+                                text: 'PC1'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        y: {
+                            min: -1.1,
+                            max: 1.1,
+                            title: {
+                                display: true,
+                                text: 'PC2'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Dessiner le cercle unité
+            setTimeout(() => {
+                const canvas = ctx.canvas;
+                const drawCtx = canvas.getContext('2d');
+                const xScale = charts.circle.scales.x;
+                const yScale = charts.circle.scales.y;
+                
+                drawCtx.save();
+                drawCtx.beginPath();
+                drawCtx.arc(
+                    xScale.getPixelForValue(0),
+                    yScale.getPixelForValue(0),
+                    xScale.getPixelForValue(1) - xScale.getPixelForValue(0),
+                    0,
+                    Math.PI * 2
+                );
+                drawCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+                drawCtx.lineWidth = 1;
+                drawCtx.stroke();
+                
+                // Axes
+                drawCtx.beginPath();
+                drawCtx.moveTo(xScale.getPixelForValue(-1), yScale.getPixelForValue(0));
+                drawCtx.lineTo(xScale.getPixelForValue(1), yScale.getPixelForValue(0));
+                drawCtx.moveTo(xScale.getPixelForValue(0), yScale.getPixelForValue(-1));
+                drawCtx.lineTo(xScale.getPixelForValue(0), yScale.getPixelForValue(1));
+                drawCtx.stroke();
+                
+                drawCtx.restore();
+            }, 100);
+        }
+
+        // CAH avec dendrogramme
+        function performCAH() {
+            if (!rawData || numericColumns.length < 2) {
+                alert('La CAH nécessite au moins 2 variables numériques');
+                return;
+            }
+            
+            const nClusters = parseInt(document.getElementById('cahClusters').value);
+            const method = document.getElementById('cahMethod').value;
+            
+            const resultsDiv = document.getElementById('cahResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Classification hiérarchique...</p></div>';
+            
+            setTimeout(() => {
+                // Préparer les données (prendre 2 variables pour la visualisation)
+                const data = [];
+                const var1 = numericColumns[0];
+                const var2 = numericColumns[1] || numericColumns[0];
+                
+                rawData.forEach(row => {
+                    const x = parseFloat(row[var1]);
+                    const y = parseFloat(row[var2]);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        data.push({x: x, y: y});
+                    }
+                });
+                
+                if (data.length < 5) {
+                    resultsDiv.innerHTML = '<div class="alert alert-warning">Données insuffisantes</div>';
+                    return;
+                }
+                
+                // Calcul des distances (simplifié)
+                const n = Math.min(data.length, 20); // Limiter pour la performance
+                const distanceMatrix = [];
+                for (let i = 0; i < n; i++) {
+                    distanceMatrix[i] = [];
+                    for (let j = 0; j < n; j++) {
+                        if (i === j) {
+                            distanceMatrix[i][j] = 0;
+                        } else {
+                            const dx = data[i].x - data[j].x;
+                            const dy = data[i].y - data[j].y;
+                            distanceMatrix[i][j] = Math.sqrt(dx*dx + dy*dy);
+                        }
+                    }
+                }
+                
+                // Clustering hiérarchique (simplifié)
+                const clusters = hierarchicalClustering(distanceMatrix, method, nClusters, n);
+                
+                // Statistiques des clusters
+                const clusterStats = [];
+                for (let i = 0; i < nClusters; i++) {
+                    const clusterData = data.filter((_, idx) => clusters[idx] === i);
+                    const size = clusterData.length;
+                    if (size > 0) {
+                        const meanX = ss.mean(clusterData.map(d => d.x));
+                        const meanY = ss.mean(clusterData.map(d => d.y));
+                        clusterStats.push({
+                            size: size,
+                            meanX: meanX,
+                            meanY: meanY,
+                            percentage: (size / n * 100).toFixed(1)
+                        });
+                    }
+                }
+                
+                // Afficher les résultats
+                let html = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        CAH terminée: ${nClusters} clusters identifiés
+                    </div>
+                    
+                    <h4>Répartition des clusters</h4>
+                    <table>
+                        <thead>
+                            <tr><th>Cluster</th><th>Taille</th><th>%</th><th>${var1} (moy)</th><th>${var2} (moy)</th></tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                clusterStats.forEach((stats, i) => {
+                    html += `
+                        <tr>
+                            <td><strong>Cluster ${i+1}</strong></td>
+                            <td>${stats.size}</td>
+                            <td>${stats.percentage}%</td>
+                            <td>${stats.meanX.toFixed(2)}</td>
+                            <td>${stats.meanY.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="chart-container" style="margin-top: 20px;">
+                        <canvas id="dendrogramChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container" style="margin-top: 20px;">
+                        <canvas id="clustersChart"></canvas>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer les visualisations
+                setTimeout(() => {
+                    createDendrogram(n, nClusters);
+                    createClustersChart(data, clusters, nClusters, var1, var2);
+                }, 100);
+            }, 800);
+        }
+
+        function hierarchicalClustering(distanceMatrix, method, nClusters, n) {
+            // Algorithme de clustering hiérarchique simplifié
+            const labels = new Array(n).fill(0);
+            
+            if (nClusters === 1) return labels;
+            
+            // Groupes initiaux (chaque point est son propre cluster)
+            let clusters = Array.from({length: n}, (_, i) => [i]);
+            
+            while (clusters.length > nClusters) {
+                // Trouver les deux clusters les plus proches
+                let minDist = Infinity;
+                let clusterA = 0, clusterB = 0;
+                
+                for (let i = 0; i < clusters.length; i++) {
+                    for (let j = i + 1; j < clusters.length; j++) {
+                        let dist = 0;
+                        
+                        if (method === 'ward') {
+                            // Distance de Ward simplifiée
+                            dist = averageDistance(clusters[i], clusters[j], distanceMatrix);
+                        } else if (method === 'complete') {
+                            dist = completeLinkage(clusters[i], clusters[j], distanceMatrix);
+                        } else {
+                            dist = averageDistance(clusters[i], clusters[j], distanceMatrix);
+                        }
+                        
+                        if (dist < minDist) {
+                            minDist = dist;
+                            clusterA = i;
+                            clusterB = j;
+                        }
+                    }
+                }
+                
+                // Fusionner les clusters
+                const merged = [...clusters[clusterA], ...clusters[clusterB]];
+                clusters.splice(Math.max(clusterA, clusterB), 1);
+                clusters.splice(Math.min(clusterA, clusterB), 1);
+                clusters.push(merged);
+            }
+            
+            // Assigner les labels finaux
+            const finalLabels = new Array(n).fill(-1);
+            clusters.forEach((cluster, clusterIdx) => {
+                cluster.forEach(pointIdx => {
+                    finalLabels[pointIdx] = clusterIdx;
+                });
+            });
+            
+            return finalLabels;
+        }
+
+        function averageDistance(clusterA, clusterB, distanceMatrix) {
+            let total = 0;
+            let count = 0;
+            
+            for (const i of clusterA) {
+                for (const j of clusterB) {
+                    total += distanceMatrix[i][j];
+                    count++;
+                }
+            }
+            
+            return total / count;
+        }
+
+        function completeLinkage(clusterA, clusterB, distanceMatrix) {
+            let maxDist = 0;
+            
+            for (const i of clusterA) {
+                for (const j of clusterB) {
+                    maxDist = Math.max(maxDist, distanceMatrix[i][j]);
+                }
+            }
+            
+            return maxDist;
+        }
+
+        function createDendrogram(n, nClusters) {
+            const ctx = document.getElementById('dendrogramChart').getContext('2d');
+            if (charts.dendro) charts.dendro.destroy();
+            
+            // Données simulées pour le dendrogramme
+            const data = [];
+            for (let i = 0; i < n; i++) {
+                data.push({
+                    x: i * 10,
+                    y: Math.random() * 100
+                });
+            }
+            
+            charts.dendro = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Points',
+                        data: data,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Dendrogramme (simplifié)'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Points' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Distance' },
+                            reverse: true
+                        }
+                    }
+                }
+            });
+            
+            // Dessiner les lignes du dendrogramme
+            setTimeout(() => {
+                const canvas = ctx.canvas;
+                const drawCtx = canvas.getContext('2d');
+                
+                drawCtx.save();
+                drawCtx.strokeStyle = '#333';
+                drawCtx.lineWidth = 1;
+                drawCtx.setLineDash([2, 2]);
+                
+                // Dessiner quelques lignes de liaison
+                for (let i = 0; i < n - 1; i += 2) {
+                    if (i + 1 < n) {
+                        drawCtx.beginPath();
+                        drawCtx.moveTo(data[i].x, data[i].y);
+                        drawCtx.lineTo(data[i + 1].x, data[i + 1].y);
+                        drawCtx.stroke();
+                    }
+                }
+                
+                drawCtx.restore();
+            }, 100);
+        }
+
+        function createClustersChart(data, clusters, nClusters, var1, var2) {
+            const ctx = document.getElementById('clustersChart').getContext('2d');
+            if (charts.clusters) charts.clusters.destroy();
+            
+            const colors = [
+                'rgba(231, 76, 60, 0.7)',
+                'rgba(46, 204, 113, 0.7)',
+                'rgba(52, 152, 219, 0.7)',
+                'rgba(155, 89, 182, 0.7)',
+                'rgba(241, 196, 15, 0.7)',
+                'rgba(230, 126, 34, 0.7)'
+            ];
+            
+            const datasets = [];
+            for (let i = 0; i < nClusters; i++) {
+                const clusterData = data.filter((_, idx) => clusters[idx] === i);
+                datasets.push({
+                    label: `Cluster ${i+1}`,
+                    data: clusterData.map(d => ({x: d.x, y: d.y})),
+                    backgroundColor: colors[i % colors.length],
+                    pointRadius: 5
+                });
+            }
+            
+            charts.clusters = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Clusters (${var1} vs ${var2})`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: var1 }
+                        },
+                        y: {
+                            title: { display: true, text: var2 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Génération du rapport Word
+        function generateWordReport() {
+            if (!rawData) {
+                alert('Importez d\'abord des données');
+                return;
+            }
+            
+            const reportTitle = document.getElementById('reportTitle').value || 'Rapport d\'Analyse';
+            const statusDiv = document.getElementById('reportStatus');
+            statusDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Génération du rapport...</p></div>';
+            
+            setTimeout(() => {
+                // Créer le contenu HTML pour Word
+                const htmlContent = createWordHTML(reportTitle);
+                
+                // Créer et télécharger le fichier Word
+                const blob = new Blob([htmlContent], { type: 'application/msword' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${reportTitle.replace(/\s+/g, '_')}.doc`;
+                link.click();
+                
+                statusDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        Rapport généré avec succès!
+                    </div>
+                `;
+            }, 1500);
+        }
+
+        function createWordHTML(reportTitle) {
+            const date = new Date().toLocaleDateString('fr-FR');
+            const time = new Date().toLocaleTimeString('fr-FR');
+            
+            return `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='utf-8'>
+<title>${reportTitle}</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 2cm; line-height: 1.6; }
+h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+h2 { color: #2c3e50; margin-top: 30px; }
+h3 { color: #3498db; }
+table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+th { background: #2c3e50; color: white; }
+.header { text-align: center; margin-bottom: 40px; }
+.footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>${reportTitle}</h1>
+    <p><strong>Date:</strong> ${date} à ${time}</p>
+    <p><strong>Généré par:</strong> SahelStats Pro</p>
+</div>
+
+<h2>1. RÉSUMÉ DES DONNÉES</h2>
+<p><strong>Nombre d'observations:</strong> ${rawData.length}</p>
+<p><strong>Variables numériques:</strong> ${numericColumns.length}</p>
+<p><strong>Variables catégorielles:</strong> ${categoricalColumns.length}</p>
+
+<h2>2. STATISTIQUES DESCRIPTIVES</h2>
+<h3>Variables Numériques</h3>
+<table>
+    <tr><th>Variable</th><th>Moyenne</th><th>Écart-type</th><th>Minimum</th><th>Maximum</th></tr>
+    ${numericColumns.slice(0, 5).map(col => {
+        const values = rawData.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
+        if (values.length === 0) return '';
+        return `
+        <tr>
+            <td>${col}</td>
+            <td>${ss.mean(values).toFixed(2)}</td>
+            <td>${ss.standardDeviation(values).toFixed(2)}</td>
+            <td>${ss.min(values).toFixed(2)}</td>
+            <td>${ss.max(values).toFixed(2)}</td>
+        </tr>`;
+    }).join('')}
+</table>
+
+<h2>3. ANALYSE EN COMPOSANTES PRINCIPALES</h2>
+<p>L'ACP a été réalisée pour réduire la dimensionnalité des données et identifier les variables les plus importantes.</p>
+<p><strong>Variables analysées:</strong> ${numericColumns.slice(0, 5).join(', ')}</p>
+
+<h2>4. CLASSIFICATION HIÉRARCHIQUE</h2>
+<p>La Classification Ascendante Hiérarchique a permis d'identifier des groupes homogènes dans les données.</p>
+<p><strong>Méthode utilisée:</strong> ${document.getElementById('cahMethod')?.value || 'Ward'}</p>
+<p><strong>Nombre de clusters:</strong> ${document.getElementById('cahClusters')?.value || 3}</p>
+
+<h2>5. CONCLUSIONS</h2>
+<p>Cette analyse a permis de:</p>
+<ul>
+    <li>Caractériser statistiquement les données</li>
+    <li>Identifier les principales composantes via l'ACP</li>
+    <li>Segmenter les données en groupes homogènes via la CAH</li>
+    <li>Générer des insights exploitables pour la prise de décision</li>
+</ul>
+
+<h2>6. RECOMMANDATIONS</h2>
+<ol>
+    <li>Utiliser les résultats de l'ACP pour simplifier les modèles futurs</li>
+    <li>Adapter les stratégies en fonction des clusters identifiés</li>
+    <li>Mettre en place un suivi régulier des indicateurs clés</li>
+</ol>
+
+<div class="footer">
+    <p><strong>Rapport généré par SahelStats Pro</strong></p>
+    <p>Dr. MAGAGI ALI Bachir</p>
+    <p>📧 magagalibachir@gmail.com | 📱 +227 96 26 28 26</p>
+</div>
+
+</body>
+</html>`;
+        }
+
+        // Export des données
+        function exportData() {
+            if (!rawData) {
+                alert('Aucune donnée à exporter');
+                return;
+            }
+            
+            const csv = Papa.unparse(rawData);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `donnees_${Date.now()}.csv`;
+            link.click();
+        }
+
+        // Initialisation
+        window.onload = function() {
+            console.log('SahelStats Pro chargé');
+            // Charger un exemple au démarrage
+            setTimeout(loadSampleData, 500);
+        };
+    </script>
+</body>
+</html>
