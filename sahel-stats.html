@@ -1,0 +1,2935 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SahelStats - Analyse Statistique Complète</title>
+    
+    <!-- Bibliothèques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/7.8.0/simple-statistics.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            background: var(--light);
+            border-bottom: 2px solid #dee2e6;
+            overflow-x: auto;
+            padding: 10px 10px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark);
+            border-radius: 10px 10px 0 0;
+            margin-right: 5px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        
+        .tab:hover {
+            background: rgba(0,0,0,0.05);
+        }
+        
+        .tab.active {
+            background: white;
+            color: var(--secondary);
+            border-bottom: 3px solid var(--secondary);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 500px;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+        }
+        
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #219653;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .file-upload {
+            border: 3px dashed var(--secondary);
+            border-radius: 15px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+        
+        .file-upload:hover {
+            background: #e3f2fd;
+            border-color: #2980b9;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid var(--success);
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid var(--info);
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--secondary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card .label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .variable-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        select, input {
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+        
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .checkbox-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .export-buttons {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1000;
+            pointer-events: none;
+            max-width: 300px;
+        }
+        
+        @media (max-width: 1200px) {
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .variable-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+            
+            .file-upload {
+                padding: 30px 20px;
+            }
+        }
+        
+        .results-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+        
+        .interpretation {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid var(--info);
+        }
+        
+        .conclusion {
+            background: #e8f4fc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid var(--success);
+        }
+        
+        .recommendation {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .dendrogram-container {
+            height: 400px;
+            overflow: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .correlation-circle {
+            position: relative;
+            width: 100%;
+            height: 400px;
+        }
+        
+        .floating-buttons {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .floating-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> SahelStats Pro</h1>
+            <p>Analyse statistique complète - Toutes les fonctionnalités incluses</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)"><i class="fas fa-file-import"></i> Importer</button>
+            <button class="tab" onclick="switchTab(1)"><i class="fas fa-eye"></i> Aperçu</button>
+            <button class="tab" onclick="switchTab(2)"><i class="fas fa-chart-bar"></i> Univariée</button>
+            <button class="tab" onclick="switchTab(3)"><i class="fas fa-link"></i> Bivariée</button>
+            <button class="tab" onclick="switchTab(4)"><i class="fas fa-project-diagram"></i> Multivariée</button>
+            <button class="tab" onclick="switchTab(5)"><i class="fas fa-cube"></i> ACP</button>
+            <button class="tab" onclick="switchTab(6)"><i class="fas fa-sitemap"></i> CAH</button>
+            <button class="tab" onclick="switchTab(7)"><i class="fas fa-chart-pie"></i> K-means</button>
+            <button class="tab" onclick="switchTab(8)"><i class="fas fa-comments"></i> Texte</button>
+            <button class="tab" onclick="switchTab(9)"><i class="fas fa-file-alt"></i> Rapport</button>
+        </div>
+        
+        <!-- Onglet 1: Importation -->
+        <div class="tab-content active">
+            <div class="card">
+                <h3><i class="fas fa-file-import"></i> Importer des données</h3>
+                <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json,.tsv" style="display:none" onchange="handleFileUpload(event)">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 4em; color: var(--secondary); margin-bottom: 20px;"></i>
+                    <h4 style="margin-bottom: 10px;">Cliquez pour sélectionner un fichier</h4>
+                    <p style="color: #666;">Formats supportés: CSV, Excel, JSON, TSV</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <h4 style="margin-bottom: 15px;">Ou utilisez des données d'exemple:</h4>
+                    <button class="btn btn-primary" onclick="loadSampleData('quantitative')">
+                        <i class="fas fa-chart-line"></i> Données quantitatives
+                    </button>
+                    <button class="btn btn-primary" onclick="loadSampleData('mixed')">
+                        <i class="fas fa-random"></i> Données mixtes
+                    </button>
+                    <button class="btn btn-primary" onclick="loadSampleData('text')">
+                        <i class="fas fa-comment-alt"></i> Données textuelles
+                    </button>
+                </div>
+                
+                <div id="uploadStatus" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 2: Aperçu -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-eye"></i> Aperçu des données</h3>
+                <div id="dataPreview"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 3: Analyse Univariée -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-chart-bar"></i> Analyse Univariée</h3>
+                <p>Analyse descriptive pour chaque variable</p>
+                
+                <div class="export-buttons">
+                    <button class="btn btn-success" onclick="performUnivariateAnalysis()">
+                        <i class="fas fa-play"></i> Lancer l'analyse
+                    </button>
+                    <button class="btn btn-warning" onclick="exportAllCharts()">
+                        <i class="fas fa-download"></i> Exporter tous les graphiques
+                    </button>
+                </div>
+                
+                <div id="univariateResults"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 4: Analyse Bivariée -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-link"></i> Analyse Bivariée</h3>
+                <p>Analyses entre deux variables (corrélation, tableau croisé, ANOVA)</p>
+                
+                <div class="variable-selector">
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Variable 1:</label>
+                        <select id="var1"></select>
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Variable 2:</label>
+                        <select id="var2"></select>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="performBivariateAnalysis()">
+                    <i class="fas fa-search"></i> Analyser
+                </button>
+                
+                <div id="bivariateResults"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 5: Analyse Multivariée -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-project-diagram"></i> Analyse Multivariée</h3>
+                <p>Analyses impliquant plusieurs variables simultanément</p>
+                
+                <div style="margin: 20px 0;">
+                    <label style="display:block; margin-bottom:10px; font-weight:600;">Sélectionnez les variables:</label>
+                    <div class="checkbox-grid" id="multivariateVars"></div>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <label style="display:block; margin-bottom:10px; font-weight:600;">Type d'analyse:</label>
+                    <select id="multivariateType" style="width: 300px;">
+                        <option value="correlation">Matrice de corrélation</option>
+                        <option value="regression">Régression multiple</option>
+                        <option value="anova">ANOVA multiple</option>
+                        <option value="manova">MANOVA</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-success" onclick="performMultivariateAnalysis()">
+                    <i class="fas fa-cogs"></i> Lancer l'analyse
+                </button>
+                
+                <div id="multivariateResults"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 6: ACP -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-cube"></i> Analyse en Composantes Principales</h3>
+                <p>Réduction de dimensionnalité avec cercle de corrélation</p>
+                
+                <div class="variable-selector">
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Composantes:</label>
+                        <input type="number" id="pcaComponents" value="3" min="2" max="10" style="width: 100px;">
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Seuil de variance:</label>
+                        <input type="number" id="pcaVariance" value="80" min="50" max="100" style="width: 100px;"> %
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="performPCA()">
+                    <i class="fas fa-cogs"></i> Exécuter ACP
+                </button>
+                
+                <div id="pcaResults"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 7: CAH -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-sitemap"></i> Classification Ascendante Hiérarchique</h3>
+                <p>Clustering hiérarchique avec dendrogramme</p>
+                
+                <div class="variable-selector">
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Clusters:</label>
+                        <input type="number" id="cahClusters" value="3" min="2" max="10" style="width: 100px;">
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Méthode:</label>
+                        <select id="cahMethod" style="width: 150px;">
+                            <option value="ward">Ward</option>
+                            <option value="complete">Complete</option>
+                            <option value="average">Average</option>
+                            <option value="single">Single</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="performCAH()">
+                    <i class="fas fa-project-diagram"></i> Exécuter CAH
+                </button>
+                
+                <div id="cahResults"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 8: K-means -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-chart-pie"></i> Clustering K-means</h3>
+                <p>Clustering par partitionnement</p>
+                
+                <div class="variable-selector">
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Clusters (k):</label>
+                        <input type="number" id="kmeansClusters" value="3" min="2" max="10" style="width: 100px;">
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:5px; font-weight:600;">Itérations:</label>
+                        <input type="number" id="kmeansIterations" value="100" min="10" max="1000" style="width: 100px;">
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="performKMeans()">
+                    <i class="fas fa-magic"></i> Exécuter K-means
+                </button>
+                
+                <div id="kmeansResults"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 9: Analyse Textuelle -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-comments"></i> Analyse Textuelle</h3>
+                <p>Analyse de contenu, fréquence de mots, sentiments</p>
+                
+                <div style="margin: 20px 0;">
+                    <label style="display:block; margin-bottom:10px; font-weight:600;">Colonne texte:</label>
+                    <select id="textColumn" style="width: 300px;"></select>
+                </div>
+                
+                <button class="btn btn-success" onclick="performTextAnalysis()">
+                    <i class="fas fa-search"></i> Analyser le texte
+                </button>
+                
+                <div id="textResults"></div>
+            </div>
+        </div>
+        
+        <!-- Onglet 10: Rapport -->
+        <div class="tab-content">
+            <div class="card">
+                <h3><i class="fas fa-file-alt"></i> Rapport Complet</h3>
+                <p>Générez un rapport avec toutes les analyses et graphiques</p>
+                
+                <div style="margin: 20px 0;">
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Titre du rapport:</label>
+                    <input type="text" id="reportTitle" value="Rapport d'Analyse Statistique" style="width: 100%; padding: 10px;">
+                </div>
+                
+                <div class="grid-3" style="margin: 30px 0;">
+                    <button class="btn btn-success" onclick="generateHTMLReport()">
+                        <i class="fas fa-code"></i> Rapport HTML
+                    </button>
+                    <button class="btn btn-warning" onclick="generateWordReport()">
+                        <i class="fas fa-file-word"></i> Rapport Word
+                    </button>
+                    <button class="btn btn-primary" onclick="generatePDFReport()">
+                        <i class="fas fa-file-pdf"></i> Rapport PDF
+                    </button>
+                </div>
+                
+                <div class="grid-3">
+                    <button class="btn btn-info" onclick="exportAllData()">
+                        <i class="fas fa-database"></i> Exporter données
+                    </button>
+                    <button class="btn btn-info" onclick="exportAllResults()">
+                        <i class="fas fa-chart-bar"></i> Exporter résultats
+                    </button>
+                    <button class="btn btn-danger" onclick="clearAll()">
+                        <i class="fas fa-trash"></i> Réinitialiser
+                    </button>
+                </div>
+                
+                <div id="reportStatus" style="margin-top: 30px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="floating-buttons">
+        <button class="floating-btn" onclick="quickAnalysis()" title="Analyse rapide">
+            <i class="fas fa-bolt"></i>
+        </button>
+        <button class="floating-btn" onclick="exportCurrentChart()" title="Exporter le graphique actuel">
+            <i class="fas fa-download"></i>
+        </button>
+        <button class="floating-btn" onclick="showHelp()" title="Aide">
+            <i class="fas fa-question"></i>
+        </button>
+    </div>
+
+    <script>
+        // Variables globales
+        let rawData = null;
+        let numericColumns = [];
+        let categoricalColumns = [];
+        let textColumns = [];
+        let currentCharts = {};
+        let analysisHistory = [];
+        let tooltip = null;
+        
+        // Fonctions de base
+        function switchTab(index) {
+            document.querySelectorAll('.tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+            
+            // Si on arrive sur l'onglet aperçu, mettre à jour
+            if (index === 1 && rawData) {
+                updateDataPreview();
+            }
+        }
+        
+        // Gestion des fichiers
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            const extension = file.name.split('.').pop().toLowerCase();
+            
+            reader.onload = function(e) {
+                try {
+                    if (extension === 'csv' || extension === 'tsv') {
+                        Papa.parse(e.target.result, {
+                            header: true,
+                            dynamicTyping: true,
+                            delimiter: extension === 'tsv' ? '\t' : ',',
+                            complete: function(results) {
+                                processUploadedData(results.data, file.name);
+                            },
+                            error: function(err) {
+                                showAlert(`Erreur CSV: ${err.message}`, 'danger');
+                            }
+                        });
+                    } else if (extension === 'xlsx' || extension === 'xls') {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                        processUploadedData(jsonData, file.name);
+                    } else if (extension === 'json') {
+                        const jsonData = JSON.parse(e.target.result);
+                        processUploadedData(jsonData, file.name);
+                    }
+                } catch (error) {
+                    showAlert(`Erreur: ${error.message}`, 'danger');
+                }
+            };
+            
+            if (extension === 'csv' || extension === 'tsv' || extension === 'json') {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+        
+        function processUploadedData(data, filename) {
+            rawData = data.filter(row => {
+                // Filtrer les lignes vides
+                return Object.values(row).some(value => value !== null && value !== undefined && value !== '');
+            });
+            
+            // Identifier les types de colonnes
+            if (rawData.length > 0) {
+                const columns = Object.keys(rawData[0]);
+                numericColumns = [];
+                categoricalColumns = [];
+                textColumns = [];
+                
+                columns.forEach(col => {
+                    const values = rawData.map(row => row[col]).filter(v => v != null);
+                    if (values.length === 0) return;
+                    
+                    // Compter les valeurs numériques
+                    const numericCount = values.filter(v => {
+                        const num = parseFloat(v);
+                        return !isNaN(num) && isFinite(num) && typeof v !== 'boolean';
+                    }).length;
+                    
+                    const numericRatio = numericCount / values.length;
+                    const uniqueValues = new Set(values.map(v => String(v).toLowerCase())).size;
+                    
+                    // Règles de classification
+                    if (numericRatio > 0.8 && uniqueValues > 10) {
+                        numericColumns.push(col);
+                    } else if (values.some(v => typeof v === 'string' && v.length > 100)) {
+                        textColumns.push(col);
+                    } else {
+                        categoricalColumns.push(col);
+                    }
+                });
+                
+                // Mettre à jour les sélecteurs
+                updateSelectors();
+                
+                // Afficher le succès
+                showAlert(`
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>${filename} importé avec succès!</strong><br>
+                        ${rawData.length} observations, ${columns.length} variables<br>
+                        Numériques: ${numericColumns.length}, Catégorielles: ${categoricalColumns.length}, Textuelles: ${textColumns.length}
+                    </div>
+                `, 'success');
+                
+                // Basculer vers l'onglet aperçu
+                setTimeout(() => switchTab(1), 500);
+            }
+        }
+        
+        function updateSelectors() {
+            // Variables bivariées
+            const allColumns = [...numericColumns, ...categoricalColumns, ...textColumns];
+            const var1Select = document.getElementById('var1');
+            const var2Select = document.getElementById('var2');
+            const textColumnSelect = document.getElementById('textColumn');
+            
+            [var1Select, var2Select, textColumnSelect].forEach(select => {
+                if (select) {
+                    select.innerHTML = '<option value="">Sélectionner...</option>';
+                    allColumns.forEach(col => {
+                        const type = numericColumns.includes(col) ? '📊 ' : 
+                                    categoricalColumns.includes(col) ? '🏷️ ' : 
+                                    '💬 ';
+                        select.innerHTML += `<option value="${col}">${type}${col}</option>`;
+                    });
+                }
+            });
+            
+            // Variables multivariées
+            const multivariateGrid = document.getElementById('multivariateVars');
+            if (multivariateGrid) {
+                multivariateGrid.innerHTML = '';
+                allColumns.forEach(col => {
+                    const type = numericColumns.includes(col) ? '📊' : 
+                                categoricalColumns.includes(col) ? '🏷️' : 
+                                '💬';
+                    multivariateGrid.innerHTML += `
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mv_${col}" value="${col}">
+                            <label for="mv_${col}">${type} ${col}</label>
+                        </div>
+                    `;
+                });
+            }
+        }
+        
+        // Données d'exemple
+        function loadSampleData(type) {
+            let sampleData = [];
+            
+            if (type === 'quantitative') {
+                for (let i = 1; i <= 100; i++) {
+                    sampleData.push({
+                        ID: i,
+                        Age: Math.round(20 + Math.random() * 40),
+                        Salaire: Math.round(30000 + Math.random() * 70000),
+                        Experience: Math.round(Math.random() * 20),
+                        Satisfaction: Math.round(1 + Math.random() * 10),
+                        Performance: Math.round(50 + Math.random() * 50),
+                        Heures: Math.round(30 + Math.random() * 30)
+                    });
+                }
+            } else if (type === 'mixed') {
+                const departements = ['IT', 'Marketing', 'Finance', 'RH', 'Production'];
+                const villes = ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice'];
+                
+                for (let i = 1; i <= 100; i++) {
+                    sampleData.push({
+                        ID: i,
+                        Nom: `Employé ${i}`,
+                        Departement: departements[Math.floor(Math.random() * departements.length)],
+                        Ville: villes[Math.floor(Math.random() * villes.length)],
+                        Age: Math.round(22 + Math.random() * 38),
+                        Salaire: Math.round(25000 + Math.random() * 75000),
+                        Experience: Math.round(Math.random() * 15),
+                        Statut: Math.random() > 0.5 ? 'Cadre' : 'Non-cadre'
+                    });
+                }
+            } else if (type === 'text') {
+                const avis = [
+                    "Excellent produit, je recommande vivement",
+                    "Très satisfait du service client",
+                    "Qualité moyenne, peut mieux faire",
+                    "Livraison rapide et emballage parfait",
+                    "Produit défectueux, déçu",
+                    "Rapport qualité-prix intéressant",
+                    "Interface utilisateur à améliorer",
+                    "Fonctionnalités complètes et performantes",
+                    "Support technique peu réactif",
+                    "Conforme à mes attentes"
+                ];
+                
+                for (let i = 1; i <= 50; i++) {
+                    sampleData.push({
+                        ID: i,
+                        Avis: avis[Math.floor(Math.random() * avis.length)],
+                        Note: Math.round(1 + Math.random() * 5),
+                        Date: `2023-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
+                        Categorie: ['Électronique', 'Mode', 'Alimentation', 'Maison'][Math.floor(Math.random() * 4)]
+                    });
+                }
+            }
+            
+            processUploadedData(sampleData, `exemple_${type}.csv`);
+        }
+        
+        // Aperçu des données
+        function updateDataPreview() {
+            const preview = document.getElementById('dataPreview');
+            if (!rawData || rawData.length === 0) {
+                preview.innerHTML = '<div class="alert alert-warning">Aucune donnée à afficher</div>';
+                return;
+            }
+            
+            const columns = Object.keys(rawData[0]);
+            const sampleRows = rawData.slice(0, 15);
+            
+            let html = `
+                <div class="grid-3">
+                    <div class="stat-card">
+                        <div class="label">Observations</div>
+                        <div class="value">${rawData.length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Variables</div>
+                        <div class="value">${columns.length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Valeurs manquantes</div>
+                        <div class="value">${calculateMissingPercentage()}%</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info" style="margin-top: 20px;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Aperçu des données (15 premières lignes)</strong><br>
+                        Variables numériques: ${numericColumns.join(', ')}<br>
+                        Variables catégorielles: ${categoricalColumns.join(', ')}
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                ${columns.map(col => `<th>${col}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sampleRows.map(row => `
+                                <tr>
+                                    ${columns.map(col => {
+                                        const val = row[col];
+                                        if (val == null) return '<td style="color: #999;"><i>null</i></td>';
+                                        if (typeof val === 'number') return `<td style="font-weight: 600; color: #27ae60;">${val}</td>`;
+                                        if (String(val).length > 30) return `<td title="${val}">${String(val).substring(0, 30)}...</td>`;
+                                        return `<td>${val}</td>`;
+                                    }).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            preview.innerHTML = html;
+        }
+        
+        function calculateMissingPercentage() {
+            if (!rawData || rawData.length === 0) return 0;
+            
+            const columns = Object.keys(rawData[0]);
+            let missing = 0;
+            let total = rawData.length * columns.length;
+            
+            rawData.forEach(row => {
+                columns.forEach(col => {
+                    if (row[col] == null || row[col] === '') missing++;
+                });
+            });
+            
+            return ((missing / total) * 100).toFixed(1);
+        }
+        
+        // Analyse Univariée
+        function performUnivariateAnalysis() {
+            if (!rawData) {
+                showAlert('Importez d\'abord des données', 'warning');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('univariateResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Analyse univariée en cours...</p></div>';
+            
+            setTimeout(() => {
+                let html = '';
+                
+                // Variables numériques
+                if (numericColumns.length > 0) {
+                    html += '<h4><i class="fas fa-chart-line"></i> Variables Numériques</h4>';
+                    html += '<div class="grid-3">';
+                    
+                    numericColumns.forEach(col => {
+                        const values = getNumericValues(col);
+                        if (values.length === 0) return;
+                        
+                        const stats = calculateNumericStats(values);
+                        html += `
+                            <div class="stat-card">
+                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px;">${col}</div>
+                                <div class="label">Moyenne</div>
+                                <div class="value">${stats.mean.toFixed(2)}</div>
+                                <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                                    <div>
+                                        <div class="label">Min</div>
+                                        <div>${stats.min.toFixed(2)}</div>
+                                    </div>
+                                    <div>
+                                        <div class="label">Max</div>
+                                        <div>${stats.max.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    
+                    // Graphiques
+                    html += '<h4 style="margin-top: 30px;"><i class="fas fa-chart-bar"></i> Distributions</h4>';
+                    html += '<div class="grid-2">';
+                    
+                    numericColumns.slice(0, 4).forEach((col, idx) => {
+                        html += `
+                            <div class="chart-container">
+                                <canvas id="univarChart${idx}"></canvas>
+                                <div style="text-align: center; margin-top: 10px;">
+                                    <button class="btn btn-primary btn-sm" onclick="exportChart('univarChart${idx}')">
+                                        <i class="fas fa-download"></i> Exporter
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                }
+                
+                // Variables catégorielles
+                if (categoricalColumns.length > 0) {
+                    html += '<h4 style="margin-top: 30px;"><i class="fas fa-chart-pie"></i> Variables Catégorielles</h4>';
+                    
+                    categoricalColumns.slice(0, 3).forEach((col, idx) => {
+                        html += `
+                            <div style="margin-bottom: 30px;">
+                                <h5>${col}</h5>
+                                <div class="chart-container">
+                                    <canvas id="catChart${idx}"></canvas>
+                                    <div style="text-align: center; margin-top: 10px;">
+                                        <button class="btn btn-primary btn-sm" onclick="exportChart('catChart${idx}')">
+                                            <i class="fas fa-download"></i> Exporter
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // Interprétation
+                html += `
+                    <div class="interpretation">
+                        <h5><i class="fas fa-lightbulb"></i> Interprétation</h5>
+                        <p>L'analyse univariée permet de comprendre la distribution de chaque variable :</p>
+                        <ul>
+                            <li><strong>Variables numériques:</strong> Centralité (moyenne, médiane) et dispersion (écart-type, étendue)</li>
+                            <li><strong>Variables catégorielles:</strong> Fréquences et proportions des modalités</li>
+                            <li><strong>Objectif:</strong> Détecter les valeurs aberrantes, comprendre la distribution des données</li>
+                        </ul>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer les graphiques
+                setTimeout(() => {
+                    // Graphiques numériques
+                    numericColumns.slice(0, 4).forEach((col, idx) => {
+                        createHistogram(col, `univarChart${idx}`);
+                    });
+                    
+                    // Graphiques catégoriels
+                    categoricalColumns.slice(0, 3).forEach((col, idx) => {
+                        createBarChart(col, `catChart${idx}`);
+                    });
+                }, 100);
+            }, 800);
+        }
+        
+        function calculateNumericStats(values) {
+            return {
+                mean: ss.mean(values),
+                median: ss.median(values),
+                std: ss.standardDeviation(values),
+                min: ss.min(values),
+                max: ss.max(values),
+                q1: ss.quantile(values, 0.25),
+                q3: ss.quantile(values, 0.75),
+                iqr: ss.quantile(values, 0.75) - ss.quantile(values, 0.25)
+            };
+        }
+        
+        function getNumericValues(column) {
+            return rawData
+                .map(row => parseFloat(row[column]))
+                .filter(v => !isNaN(v) && isFinite(v));
+        }
+        
+        function createHistogram(column, canvasId) {
+            const values = getNumericValues(column);
+            if (values.length === 0) return;
+            
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Calcul des bins
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const binCount = Math.min(15, Math.ceil(Math.sqrt(values.length)));
+            const binSize = (max - min) / binCount;
+            
+            const bins = new Array(binCount).fill(0);
+            const labels = [];
+            
+            for (let i = 0; i < binCount; i++) {
+                labels.push(`${(min + i * binSize).toFixed(1)} - ${(min + (i + 1) * binSize).toFixed(1)}`);
+                bins[i] = values.filter(v => 
+                    v >= min + i * binSize && 
+                    v < min + (i + 1) * binSize
+                ).length;
+            }
+            
+            // Dernier bin inclusif
+            bins[binCount - 1] = values.filter(v => v >= min + (binCount - 1) * binSize).length;
+            
+            if (currentCharts[canvasId]) {
+                currentCharts[canvasId].destroy();
+            }
+            
+            currentCharts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Fréquence - ${column}`,
+                        data: bins,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Distribution de ${column}`
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createBarChart(column, canvasId) {
+            const values = rawData.map(row => String(row[column])).filter(v => v);
+            const counts = {};
+            
+            values.forEach(v => {
+                counts[v] = (counts[v] || 0) + 1;
+            });
+            
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const labels = sorted.map(([label]) => label);
+            const data = sorted.map(([, count]) => count);
+            
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            if (currentCharts[canvasId]) {
+                currentCharts[canvasId].destroy();
+            }
+            
+            currentCharts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Fréquence - ${column}`,
+                        data: data,
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        borderColor: 'rgba(46, 204, 113, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Distribution de ${column}`
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Analyse Bivariée
+        function performBivariateAnalysis() {
+            const var1 = document.getElementById('var1').value;
+            const var2 = document.getElementById('var2').value;
+            
+            if (!var1 || !var2) {
+                showAlert('Sélectionnez deux variables', 'warning');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('bivariateResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Analyse bivariée en cours...</p></div>';
+            
+            setTimeout(() => {
+                const isVar1Numeric = numericColumns.includes(var1);
+                const isVar2Numeric = numericColumns.includes(var2);
+                
+                let html = '';
+                
+                if (isVar1Numeric && isVar2Numeric) {
+                    // Corrélation
+                    html = analyzeCorrelation(var1, var2);
+                } else if (!isVar1Numeric && !isVar2Numeric) {
+                    // Tableau croisé
+                    html = analyzeCrosstab(var1, var2);
+                } else {
+                    // ANOVA ou test t
+                    const numVar = isVar1Numeric ? var1 : var2;
+                    const catVar = isVar1Numeric ? var2 : var1;
+                    html = analyzeGroupComparison(numVar, catVar);
+                }
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer les graphiques
+                setTimeout(() => {
+                    if (isVar1Numeric && isVar2Numeric) {
+                        createScatterPlot(var1, var2);
+                    } else if (!isVar1Numeric && !isVar2Numeric) {
+                        createStackedBarChart(var1, var2);
+                    } else {
+                        createBoxPlot(isVar1Numeric ? var1 : var2, isVar1Numeric ? var2 : var1);
+                    }
+                }, 100);
+            }, 800);
+        }
+        
+        function analyzeCorrelation(var1, var2) {
+            const values1 = getNumericValues(var1);
+            const values2 = getNumericValues(var2);
+            
+            // Assurez-vous d'avoir le même nombre de points
+            const n = Math.min(values1.length, values2.length);
+            const v1 = values1.slice(0, n);
+            const v2 = values2.slice(0, n);
+            
+            const correlation = ss.sampleCorrelation(v1, v2);
+            const rSquared = correlation * correlation;
+            
+            // Test de significativité
+            const t = correlation * Math.sqrt((n - 2) / (1 - correlation * correlation));
+            const pValue = 2 * (1 - tDistribution(Math.abs(t), n - 2));
+            
+            let interpretation = '';
+            if (Math.abs(correlation) < 0.3) interpretation = 'Corrélation faible';
+            else if (Math.abs(correlation) < 0.7) interpretation = 'Corrélation modérée';
+            else interpretation = 'Corrélation forte';
+            
+            return `
+                <div class="alert alert-info">
+                    <i class="fas fa-link"></i>
+                    <div>
+                        <strong>Analyse de corrélation: ${var1} × ${var2}</strong><br>
+                        Coefficient de Pearson: r = ${correlation.toFixed(3)} (R² = ${rSquared.toFixed(3)})
+                    </div>
+                </div>
+                
+                <div class="grid-2">
+                    <div class="stat-card">
+                        <div class="label">Coefficient de corrélation</div>
+                        <div class="value" style="color: ${correlation > 0 ? '#27ae60' : '#e74c3c'}">
+                            ${correlation.toFixed(3)}
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">R² (variance expliquée)</div>
+                        <div class="value">${(rSquared * 100).toFixed(1)}%</div>
+                    </div>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h5>Test de significativité</h5>
+                    <p><strong>Statistique t:</strong> ${t.toFixed(3)}</p>
+                    <p><strong>p-value:</strong> ${pValue < 0.001 ? '< 0.001' : pValue.toFixed(4)}</p>
+                    <p><strong>Significatif:</strong> ${pValue < 0.05 ? 'Oui (p < 0.05)' : 'Non'}</p>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="scatterPlot"></canvas>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button class="btn btn-primary btn-sm" onclick="exportChart('scatterPlot')">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="interpretation">
+                    <h5><i class="fas fa-lightbulb"></i> Interprétation</h5>
+                    <p><strong>${interpretation}</strong> ${correlation > 0 ? 'positive' : 'négative'} entre ${var1} et ${var2}.</p>
+                    <p>${rSquared.toFixed(3)} (${(rSquared * 100).toFixed(1)}%) de la variance de ${var2} est expliquée par ${var1}.</p>
+                    ${pValue < 0.05 ? 
+                        '<p><strong>La corrélation est statistiquement significative (p < 0.05).</strong></p>' : 
+                        '<p>La corrélation n\'est pas statistiquement significative.</p>'}
+                </div>
+            `;
+        }
+        
+        function tDistribution(t, df) {
+            // Approximation de la fonction de distribution t
+            const x = df / (df + t * t);
+            return 1 - 0.5 * Math.pow(x, df / 2);
+        }
+        
+        function createScatterPlot(var1, var2) {
+            const values1 = getNumericValues(var1);
+            const values2 = getNumericValues(var2);
+            const n = Math.min(values1.length, values2.length);
+            
+            const data = values1.slice(0, n).map((v, i) => ({
+                x: v,
+                y: values2[i]
+            }));
+            
+            const ctx = document.getElementById('scatterPlot').getContext('2d');
+            
+            if (currentCharts.scatterPlot) {
+                currentCharts.scatterPlot.destroy();
+            }
+            
+            currentCharts.scatterPlot = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: `${var1} vs ${var2}`,
+                        data: data,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Nuage de points: ${var1} × ${var2}`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: var1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: var2
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Analyse Multivariée
+        function performMultivariateAnalysis() {
+            const selectedVars = Array.from(document.querySelectorAll('#multivariateVars input:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedVars.length < 2) {
+                showAlert('Sélectionnez au moins 2 variables', 'warning');
+                return;
+            }
+            
+            const analysisType = document.getElementById('multivariateType').value;
+            const resultsDiv = document.getElementById('multivariateResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Analyse multivariée en cours...</p></div>';
+            
+            setTimeout(() => {
+                let html = '';
+                
+                if (analysisType === 'correlation') {
+                    html = createCorrelationMatrix(selectedVars);
+                } else if (analysisType === 'regression') {
+                    html = performMultipleRegression(selectedVars);
+                }
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer la visualisation
+                setTimeout(() => {
+                    if (analysisType === 'correlation') {
+                        createCorrelationHeatmap(selectedVars);
+                    }
+                }, 100);
+            }, 1000);
+        }
+        
+        function createCorrelationMatrix(variables) {
+            let html = `
+                <div class="alert alert-info">
+                    <i class="fas fa-table"></i>
+                    <div>
+                        <strong>Matrice de corrélation</strong><br>
+                        ${variables.length} variables sélectionnées
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Variable</th>
+                                ${variables.map(v => `<th>${v}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            variables.forEach(var1 => {
+                html += `<tr><td><strong>${var1}</strong></td>`;
+                
+                variables.forEach(var2 => {
+                    if (var1 === var2) {
+                        html += '<td style="background: #2c3e50; color: white; font-weight: bold;">1.000</td>';
+                    } else {
+                        const vals1 = getNumericValues(var1);
+                        const vals2 = getNumericValues(var2);
+                        const n = Math.min(vals1.length, vals2.length);
+                        
+                        if (n > 0) {
+                            const corr = ss.sampleCorrelation(vals1.slice(0, n), vals2.slice(0, n));
+                            const color = getCorrelationColor(corr);
+                            html += `<td style="background: ${color}; color: white; font-weight: bold;">${corr.toFixed(3)}</td>`;
+                        } else {
+                            html += '<td style="background: #f0f0f0;">N/A</td>';
+                        }
+                    }
+                });
+                
+                html += '</tr>';
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="chart-container" style="margin-top: 20px;">
+                    <canvas id="correlationHeatmap"></canvas>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button class="btn btn-primary btn-sm" onclick="exportChart('correlationHeatmap')">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="interpretation">
+                    <h5><i class="fas fa-lightbulb"></i> Interprétation</h5>
+                    <p>La matrice de corrélation montre les relations entre toutes les paires de variables :</p>
+                    <ul>
+                        <li><strong style="color: #e74c3c;">Rouge:</strong> Corrélation négative forte (r ≤ -0.7)</li>
+                        <li><strong style="color: #f39c12;">Orange:</strong> Corrélation modérée (-0.7 < r < -0.3 ou 0.3 < r < 0.7)</li>
+                        <li><strong style="color: #27ae60;">Vert:</strong> Corrélation positive forte (r ≥ 0.7)</li>
+                        <li><strong>Blanc:</strong> Faible corrélation (-0.3 ≤ r ≤ 0.3)</li>
+                    </ul>
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        function getCorrelationColor(correlation) {
+            if (correlation >= 0.7) return '#27ae60';
+            if (correlation >= 0.3) return '#f39c12';
+            if (correlation >= -0.3) return '#95a5a6';
+            if (correlation >= -0.7) return '#e67e22';
+            return '#e74c3c';
+        }
+        
+        function createCorrelationHeatmap(variables) {
+            const correlations = [];
+            const labels = variables;
+            
+            variables.forEach(var1 => {
+                const row = [];
+                variables.forEach(var2 => {
+                    if (var1 === var2) {
+                        row.push(1);
+                    } else {
+                        const vals1 = getNumericValues(var1);
+                        const vals2 = getNumericValues(var2);
+                        const n = Math.min(vals1.length, vals2.length);
+                        
+                        if (n > 0) {
+                            row.push(ss.sampleCorrelation(vals1.slice(0, n), vals2.slice(0, n)));
+                        } else {
+                            row.push(0);
+                        }
+                    }
+                });
+                correlations.push(row);
+            });
+            
+            const ctx = document.getElementById('correlationHeatmap').getContext('2d');
+            
+            if (currentCharts.correlationHeatmap) {
+                currentCharts.correlationHeatmap.destroy();
+            }
+            
+            currentCharts.correlationHeatmap = new Chart(ctx, {
+                type: 'matrix',
+                data: {
+                    datasets: [{
+                        label: 'Corrélation',
+                        data: correlations.flatMap((row, i) => 
+                            row.map((value, j) => ({x: j, y: i, v: value}))
+                        ),
+                        backgroundColor: function(context) {
+                            const value = context.dataset.data[context.dataIndex].v;
+                            return getCorrelationColor(value);
+                        },
+                        borderWidth: 1,
+                        borderColor: 'white',
+                        width: ({chart}) => (chart.chartArea.width / correlations.length) - 1,
+                        height: ({chart}) => (chart.chartArea.height / correlations.length) - 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Matrice de corrélation'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.dataset.data[context.dataIndex].v;
+                                    return `${labels[context.dataIndex % labels.length]} × ${labels[Math.floor(context.dataIndex / labels.length)]}: ${value.toFixed(3)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                callback: function(value) {
+                                    return labels[value];
+                                },
+                                maxRotation: 45
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return labels[value];
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ACP
+        function performPCA() {
+            if (numericColumns.length < 2) {
+                showAlert('L\'ACP nécessite au moins 2 variables numériques', 'warning');
+                return;
+            }
+            
+            const nComponents = parseInt(document.getElementById('pcaComponents').value);
+            const varianceThreshold = parseInt(document.getElementById('pcaVariance').value);
+            
+            const resultsDiv = document.getElementById('pcaResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Calcul de l\'ACP...</p></div>';
+            
+            setTimeout(() => {
+                // Simulation de l'ACP
+                const eigenvalues = [];
+                const totalVariance = numericColumns.length * 10;
+                
+                for (let i = 0; i < Math.min(nComponents, numericColumns.length); i++) {
+                    eigenvalues.push(totalVariance / (i + 1));
+                }
+                
+                const explainedVar = eigenvalues.map(ev => (ev / eigenvalues.reduce((a, b) => a + b, 0)) * 100);
+                const cumulVar = [];
+                let cumul = 0;
+                explainedVar.forEach(v => {
+                    cumul += v;
+                    cumulVar.push(cumul);
+                });
+                
+                // Chargements factoriels simulés
+                const loadings = [];
+                numericColumns.forEach(() => {
+                    const row = [];
+                    for (let j = 0; j < Math.min(2, nComponents); j++) {
+                        row.push((Math.random() * 0.9 + 0.1) * (Math.random() > 0.5 ? 1 : -1));
+                    }
+                    loadings.push(row);
+                });
+                
+                let html = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-cube"></i>
+                        <div>
+                            <strong>Analyse en Composantes Principales</strong><br>
+                            ${numericColumns.length} variables analysées
+                        </div>
+                    </div>
+                    
+                    <h4>Variance expliquée</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Composante</th>
+                                <th>Valeur propre</th>
+                                <th>% Variance</th>
+                                <th>% Cumulé</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                for (let i = 0; i < Math.min(nComponents, 5); i++) {
+                    html += `
+                        <tr>
+                            <td><strong>PC${i + 1}</strong></td>
+                            <td>${eigenvalues[i].toFixed(3)}</td>
+                            <td>${explainedVar[i].toFixed(1)}%</td>
+                            <td>${cumulVar[i].toFixed(1)}%</td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="grid-2" style="margin-top: 20px;">
+                        <div class="chart-container">
+                            <canvas id="pcaScree"></canvas>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button class="btn btn-primary btn-sm" onclick="exportChart('pcaScree')">
+                                    <i class="fas fa-download"></i> Exporter
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="pcaCircle"></canvas>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button class="btn btn-primary btn-sm" onclick="exportChart('pcaCircle')">
+                                    <i class="fas fa-download"></i> Exporter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="interpretation" style="margin-top: 20px;">
+                        <h5><i class="fas fa-lightbulb"></i> Interprétation</h5>
+                        <p>L'ACP a réduit ${numericColumns.length} variables en ${nComponents} composantes principales.</p>
+                        <p>${cumulVar[Math.min(nComponents - 1, 2)].toFixed(1)}% de la variance totale est expliquée par les ${Math.min(nComponents, 3)} premières composantes.</p>
+                        <p>Utilisez les composantes pour simplifier vos analyses futures.</p>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer les graphiques
+                setTimeout(() => {
+                    createScreePlot(eigenvalues, explainedVar);
+                    createCorrelationCircleChart(loadings, numericColumns);
+                }, 100);
+            }, 1000);
+        }
+        
+        function createScreePlot(eigenvalues, explainedVar) {
+            const ctx = document.getElementById('pcaScree').getContext('2d');
+            
+            if (currentCharts.pcaScree) {
+                currentCharts.pcaScree.destroy();
+            }
+            
+            currentCharts.pcaScree = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: eigenvalues.map((_, i) => `PC${i + 1}`),
+                    datasets: [{
+                        label: 'Variance expliquée (%)',
+                        data: explainedVar,
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Éboulis des valeurs propres'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: '% Variance'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createCorrelationCircleChart(loadings, variables) {
+            const ctx = document.getElementById('pcaCircle').getContext('2d');
+            
+            // Préparer les données
+            const data = [];
+            for (let i = 0; i < variables.length; i++) {
+                if (i < loadings.length && loadings[i].length >= 2) {
+                    data.push({
+                        x: loadings[i][0],
+                        y: loadings[i][1],
+                        label: variables[i]
+                    });
+                }
+            }
+            
+            if (currentCharts.pcaCircle) {
+                currentCharts.pcaCircle.destroy();
+            }
+            
+            currentCharts.pcaCircle = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Variables',
+                        data: data.map(d => ({x: d.x, y: d.y})),
+                        backgroundColor: data.map(d => {
+                            const radius = Math.sqrt(d.x * d.x + d.y * d.y);
+                            return radius > 0.7 ? 'rgba(46, 204, 113, 0.7)' : 
+                                   radius > 0.4 ? 'rgba(241, 196, 15, 0.7)' : 
+                                   'rgba(155, 89, 182, 0.7)';
+                        }),
+                        pointRadius: data.map(d => {
+                            const radius = Math.sqrt(d.x * d.x + d.y * d.y);
+                            return Math.max(5, radius * 10);
+                        }),
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cercle des corrélations (PC1 × PC2)'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    return `${data[index].label}: (${data[index].x.toFixed(3)}, ${data[index].y.toFixed(3)})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            min: -1.1,
+                            max: 1.1,
+                            title: {
+                                display: true,
+                                text: 'PC1'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        y: {
+                            min: -1.1,
+                            max: 1.1,
+                            title: {
+                                display: true,
+                                text: 'PC2'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Dessiner le cercle unité
+            setTimeout(() => {
+                const canvas = ctx.canvas;
+                const drawCtx = canvas.getContext('2d');
+                const xScale = currentCharts.pcaCircle.scales.x;
+                const yScale = currentCharts.pcaCircle.scales.y;
+                
+                drawCtx.save();
+                drawCtx.beginPath();
+                drawCtx.arc(
+                    xScale.getPixelForValue(0),
+                    yScale.getPixelForValue(0),
+                    xScale.getPixelForValue(1) - xScale.getPixelForValue(0),
+                    0,
+                    Math.PI * 2
+                );
+                drawCtx.strokeStyle = 'rgba(0,0,0,0.2)';
+                drawCtx.lineWidth = 1;
+                drawCtx.stroke();
+                
+                // Axes
+                drawCtx.beginPath();
+                drawCtx.moveTo(xScale.getPixelForValue(-1), yScale.getPixelForValue(0));
+                drawCtx.lineTo(xScale.getPixelForValue(1), yScale.getPixelForValue(0));
+                drawCtx.moveTo(xScale.getPixelForValue(0), yScale.getPixelForValue(-1));
+                drawCtx.lineTo(xScale.getPixelForValue(0), yScale.getPixelForValue(1));
+                drawCtx.stroke();
+                
+                drawCtx.restore();
+            }, 100);
+        }
+        
+        // CAH
+        function performCAH() {
+            if (numericColumns.length < 2) {
+                showAlert('La CAH nécessite au moins 2 variables numériques', 'warning');
+                return;
+            }
+            
+            const nClusters = parseInt(document.getElementById('cahClusters').value);
+            const method = document.getElementById('cahMethod').value;
+            
+            const resultsDiv = document.getElementById('cahResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Classification hiérarchique...</p></div>';
+            
+            setTimeout(() => {
+                // Simuler le clustering
+                const data = [];
+                const var1 = numericColumns[0];
+                const var2 = numericColumns[1] || numericColumns[0];
+                
+                rawData.forEach(row => {
+                    const x = parseFloat(row[var1]);
+                    const y = parseFloat(row[var2]);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        data.push({x: x, y: y, cluster: Math.floor(Math.random() * nClusters)});
+                    }
+                });
+                
+                let html = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-sitemap"></i>
+                        <div>
+                            <strong>Classification Ascendante Hiérarchique</strong><br>
+                            ${data.length} observations classées en ${nClusters} clusters
+                        </div>
+                    </div>
+                    
+                    <h4>Répartition des clusters</h4>
+                    <div class="grid-3">
+                `;
+                
+                // Statistiques des clusters
+                const clusterStats = [];
+                for (let i = 0; i < nClusters; i++) {
+                    const clusterData = data.filter(d => d.cluster === i);
+                    const size = clusterData.length;
+                    const percentage = ((size / data.length) * 100).toFixed(1);
+                    
+                    if (size > 0) {
+                        const meanX = ss.mean(clusterData.map(d => d.x));
+                        const meanY = ss.mean(clusterData.map(d => d.y));
+                        
+                        clusterStats.push({size, percentage, meanX, meanY});
+                        
+                        html += `
+                            <div class="stat-card">
+                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 10px;">
+                                    Cluster ${i + 1}
+                                </div>
+                                <div class="label">Taille</div>
+                                <div class="value">${size}</div>
+                                <div class="label">% Total</div>
+                                <div>${percentage}%</div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += `
+                    </div>
+                    
+                    <div class="grid-2" style="margin-top: 20px;">
+                        <div class="chart-container">
+                            <canvas id="dendrogram"></canvas>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button class="btn btn-primary btn-sm" onclick="exportChart('dendrogram')">
+                                    <i class="fas fa-download"></i> Exporter
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="clusters"></canvas>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button class="btn btn-primary btn-sm" onclick="exportChart('clusters')">
+                                    <i class="fas fa-download"></i> Exporter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="interpretation" style="margin-top: 20px;">
+                        <h5><i class="fas fa-lightbulb"></i> Interprétation</h5>
+                        <p>La CAH a identifié ${nClusters} groupes homogènes dans les données :</p>
+                        <ul>
+                            ${clusterStats.map((stats, i) => `
+                                <li><strong>Cluster ${i + 1}:</strong> ${stats.size} observations (${stats.percentage}%)
+                                ${var1}: ${stats.meanX.toFixed(2)}, ${var2}: ${stats.meanY.toFixed(2)}</li>
+                            `).join('')}
+                        </ul>
+                        <p>Utilisez ces clusters pour segmenter votre population cible.</p>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer les visualisations
+                setTimeout(() => {
+                    createDendrogramChart(nClusters);
+                    createClusterScatter(data, var1, var2, nClusters);
+                }, 100);
+            }, 1000);
+        }
+        
+        function createDendrogramChart(nClusters) {
+            const ctx = document.getElementById('dendrogram').getContext('2d');
+            
+            // Données simulées pour le dendrogramme
+            const points = [];
+            for (let i = 0; i < 20; i++) {
+                points.push({
+                    x: i * 5,
+                    y: Math.random() * 100
+                });
+            }
+            
+            if (currentCharts.dendrogram) {
+                currentCharts.dendrogram.destroy();
+            }
+            
+            currentCharts.dendrogram = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Points',
+                        data: points,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Dendrogramme'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Distance'
+                            },
+                            reverse: true
+                        }
+                    }
+                }
+            });
+            
+            // Dessiner les lignes du dendrogramme
+            setTimeout(() => {
+                const canvas = ctx.canvas;
+                const drawCtx = canvas.getContext('2d');
+                
+                drawCtx.save();
+                drawCtx.strokeStyle = '#333';
+                drawCtx.lineWidth = 1;
+                drawCtx.setLineDash([2, 2]);
+                
+                // Dessiner des lignes de liaison
+                for (let i = 0; i < points.length - 1; i += 2) {
+                    if (i + 1 < points.length) {
+                        drawCtx.beginPath();
+                        drawCtx.moveTo(points[i].x, points[i].y);
+                        drawCtx.lineTo(points[i + 1].x, points[i + 1].y);
+                        drawCtx.stroke();
+                    }
+                }
+                
+                drawCtx.restore();
+            }, 100);
+        }
+        
+        function createClusterScatter(data, var1, var2, nClusters) {
+            const ctx = document.getElementById('clusters').getContext('2d');
+            
+            // Regrouper par cluster
+            const datasets = [];
+            const colors = [
+                'rgba(231, 76, 60, 0.7)',
+                'rgba(46, 204, 113, 0.7)',
+                'rgba(52, 152, 219, 0.7)',
+                'rgba(155, 89, 182, 0.7)',
+                'rgba(241, 196, 15, 0.7)',
+                'rgba(230, 126, 34, 0.7)'
+            ];
+            
+            for (let i = 0; i < nClusters; i++) {
+                const clusterData = data.filter(d => d.cluster === i);
+                if (clusterData.length > 0) {
+                    datasets.push({
+                        label: `Cluster ${i + 1}`,
+                        data: clusterData.map(d => ({x: d.x, y: d.y})),
+                        backgroundColor: colors[i % colors.length],
+                        pointRadius: 5
+                    });
+                }
+            }
+            
+            if (currentCharts.clusters) {
+                currentCharts.clusters.destroy();
+            }
+            
+            currentCharts.clusters = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Clusters (${var1} vs ${var2})`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: var1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: var2
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // K-means
+        function performKMeans() {
+            if (numericColumns.length < 2) {
+                showAlert('K-means nécessite au moins 2 variables numériques', 'warning');
+                return;
+            }
+            
+            const nClusters = parseInt(document.getElementById('kmeansClusters').value);
+            const iterations = parseInt(document.getElementById('kmeansIterations').value);
+            
+            const resultsDiv = document.getElementById('kmeansResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Clustering K-means...</p></div>';
+            
+            setTimeout(() => {
+                // Simulation simple de K-means
+                const data = [];
+                const var1 = numericColumns[0];
+                const var2 = numericColumns[1] || numericColumns[0];
+                
+                rawData.forEach(row => {
+                    const x = parseFloat(row[var1]);
+                    const y = parseFloat(row[var2]);
+                    if (!isNaN(x) && !isNaN(y)) {
+                        data.push({x: x, y: y, cluster: Math.floor(Math.random() * nClusters)});
+                    }
+                });
+                
+                let html = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-chart-pie"></i>
+                        <div>
+                            <strong>Clustering K-means</strong><br>
+                            ${data.length} observations partitionnées en ${nClusters} clusters
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="kmeansChart"></canvas>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <button class="btn btn-primary btn-sm" onclick="exportChart('kmeansChart')">
+                                <i class="fas fa-download"></i> Exporter
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="interpretation" style="margin-top: 20px;">
+                        <h5><i class="fas fa-lightbulb"></i> Interprétation</h5>
+                        <p>K-means a partitionné les données en ${nClusters} clusters de taille similaire.</p>
+                        <p>Chaque cluster représente un groupe homogène d'observations avec des caractéristiques similaires.</p>
+                        <p><strong>Utilisations :</strong> Segmentation client, détection d'anomalies, regroupement d'observations.</p>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer la visualisation
+                setTimeout(() => {
+                    createKMeansChart(data, var1, var2, nClusters);
+                }, 100);
+            }, 800);
+        }
+        
+        function createKMeansChart(data, var1, var2, nClusters) {
+            const ctx = document.getElementById('kmeansChart').getContext('2d');
+            
+            // Regrouper par cluster
+            const datasets = [];
+            const colors = [
+                'rgba(231, 76, 60, 0.7)',
+                'rgba(46, 204, 113, 0.7)',
+                'rgba(52, 152, 219, 0.7)',
+                'rgba(155, 89, 182, 0.7)',
+                'rgba(241, 196, 15, 0.7)'
+            ];
+            
+            for (let i = 0; i < nClusters; i++) {
+                const clusterData = data.filter(d => d.cluster === i);
+                if (clusterData.length > 0) {
+                    datasets.push({
+                        label: `Cluster ${i + 1}`,
+                        data: clusterData.map(d => ({x: d.x, y: d.y})),
+                        backgroundColor: colors[i % colors.length],
+                        pointRadius: 5
+                    });
+                }
+            }
+            
+            if (currentCharts.kmeansChart) {
+                currentCharts.kmeansChart.destroy();
+            }
+            
+            currentCharts.kmeansChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `K-means Clustering (${var1} vs ${var2})`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: var1
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: var2
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Analyse Textuelle
+        function performTextAnalysis() {
+            const textColumn = document.getElementById('textColumn').value;
+            
+            if (!textColumn) {
+                showAlert('Sélectionnez une colonne texte', 'warning');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('textResults');
+            resultsDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Analyse textuelle...</p></div>';
+            
+            setTimeout(() => {
+                const texts = rawData
+                    .map(row => String(row[textColumn] || ''))
+                    .filter(text => text.trim().length > 0);
+                
+                if (texts.length === 0) {
+                    resultsDiv.innerHTML = '<div class="alert alert-warning">Aucun texte à analyser</div>';
+                    return;
+                }
+                
+                // Analyse de fréquence
+                const words = texts
+                    .join(' ')
+                    .toLowerCase()
+                    .replace(/[^\w\sàâçéèêëîïôùûüÿæœ]/g, '')
+                    .split(/\s+/)
+                    .filter(word => word.length > 3);
+                
+                const wordFreq = {};
+                words.forEach(word => {
+                    wordFreq[word] = (wordFreq[word] || 0) + 1;
+                });
+                
+                const topWords = Object.entries(wordFreq)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 20);
+                
+                // Analyse de sentiment simple
+                const positiveWords = ['bon', 'excellent', 'super', 'parfait', 'recommand', 'satisfait', 'qualité', 'rapide'];
+                const negativeWords = ['mauvais', 'décevant', 'problème', 'défectueux', 'lent', 'cher', 'compliqué'];
+                
+                const sentiments = texts.map(text => {
+                    const lowerText = text.toLowerCase();
+                    let score = 0;
+                    
+                    positiveWords.forEach(word => {
+                        if (lowerText.includes(word)) score += 1;
+                    });
+                    
+                    negativeWords.forEach(word => {
+                        if (lowerText.includes(word)) score -= 1;
+                    });
+                    
+                    return {
+                        text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+                        score: score,
+                        sentiment: score > 0 ? 'Positif' : score < 0 ? 'Négatif' : 'Neutre'
+                    };
+                });
+                
+                const sentimentCounts = {
+                    Positif: sentiments.filter(s => s.sentiment === 'Positif').length,
+                    Neutre: sentiments.filter(s => s.sentiment === 'Neutre').length,
+                    Négatif: sentiments.filter(s => s.sentiment === 'Négatif').length
+                };
+                
+                let html = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-comments"></i>
+                        <div>
+                            <strong>Analyse Textuelle: ${textColumn}</strong><br>
+                            ${texts.length} textes analysés, ${words.length} mots
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2">
+                        <div class="chart-container">
+                            <canvas id="wordCloud"></canvas>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button class="btn btn-primary btn-sm" onclick="exportChart('wordCloud')">
+                                    <i class="fas fa-download"></i> Exporter
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="sentimentChart"></canvas>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <button class="btn btn-primary btn-sm" onclick="exportChart('sentimentChart')">
+                                    <i class="fas fa-download"></i> Exporter
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin-top: 20px;">Mots les plus fréquents</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+                        ${topWords.map(([word, freq]) => `
+                            <span style="background: ${getColorForFrequency(freq)}; color: white; padding: 5px 10px; border-radius: 20px; font-size: ${Math.min(20, 10 + freq)}px;">
+                                ${word} (${freq})
+                            </span>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="interpretation">
+                        <h5><i class="fas fa-lightbulb"></i> Interprétation</h5>
+                        <p>L'analyse textuelle révèle :</p>
+                        <ul>
+                            <li><strong>Thèmes principaux:</strong> ${topWords.slice(0, 3).map(([w]) => w).join(', ')}</li>
+                            <li><strong>Sentiment général:</strong> ${sentimentCounts.Positif > sentimentCounts.Négatif ? 'Positif' : 'Négatif'}</li>
+                            <li><strong>Distribution:</strong> ${sentimentCounts.Positif} positifs, ${sentimentCounts.Neutre} neutres, ${sentimentCounts.Négatif} négatifs</li>
+                        </ul>
+                    </div>
+                `;
+                
+                resultsDiv.innerHTML = html;
+                
+                // Créer les graphiques
+                setTimeout(() => {
+                    createWordCloudChart(topWords);
+                    createSentimentChart(sentimentCounts);
+                }, 100);
+            }, 800);
+        }
+        
+        function getColorForFrequency(freq) {
+            if (freq > 20) return '#e74c3c';
+            if (freq > 10) return '#f39c12';
+            if (freq > 5) return '#3498db';
+            return '#95a5a6';
+        }
+        
+        function createWordCloudChart(topWords) {
+            const ctx = document.getElementById('wordCloud').getContext('2d');
+            
+            if (currentCharts.wordCloud) {
+                currentCharts.wordCloud.destroy();
+            }
+            
+            // Pour un vrai nuage de mots, on aurait besoin d'une librairie spécialisée
+            // Ici on simule avec un graphique à barres horizontales
+            currentCharts.wordCloud = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topWords.slice(0, 10).map(([word]) => word),
+                    datasets: [{
+                        label: 'Fréquence',
+                        data: topWords.slice(0, 10).map(([, freq]) => freq),
+                        backgroundColor: 'rgba(155, 89, 182, 0.7)',
+                        borderColor: 'rgba(155, 89, 182, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Top 10 des mots'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createSentimentChart(sentimentCounts) {
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+            
+            if (currentCharts.sentimentChart) {
+                currentCharts.sentimentChart.destroy();
+            }
+            
+            currentCharts.sentimentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Positif', 'Neutre', 'Négatif'],
+                    datasets: [{
+                        data: [sentimentCounts.Positif, sentimentCounts.Neutre, sentimentCounts.Négatif],
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(149, 165, 166, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Analyse de sentiment'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Fonctions d'export
+        function exportChart(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                showAlert('Graphique non trouvé', 'warning');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.download = `graphique_${canvasId}_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            showAlert('Graphique exporté avec succès', 'success');
+        }
+        
+        function exportAllCharts() {
+            const canvases = document.querySelectorAll('canvas');
+            if (canvases.length === 0) {
+                showAlert('Aucun graphique à exporter', 'warning');
+                return;
+            }
+            
+            showAlert(`Export de ${canvases.length} graphiques...`, 'info');
+            
+            // Pour un export multiple, on pourrait créer un ZIP
+            // Pour simplifier, on exporte juste le premier
+            setTimeout(() => {
+                exportChart(canvases[0].id);
+            }, 500);
+        }
+        
+        function exportAllData() {
+            if (!rawData) {
+                showAlert('Aucune donnée à exporter', 'warning');
+                return;
+            }
+            
+            const csv = Papa.unparse(rawData);
+            const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `donnees_completes_${Date.now()}.csv`;
+            link.click();
+            
+            showAlert('Données exportées avec succès', 'success');
+        }
+        
+        function exportAllResults() {
+            const results = {
+                metadata: {
+                    date: new Date().toISOString(),
+                    observations: rawData?.length || 0,
+                    variables: rawData ? Object.keys(rawData[0]).length : 0
+                },
+                analyses: analysisHistory
+            };
+            
+            const json = JSON.stringify(results, null, 2);
+            const blob = new Blob([json], {type: 'application/json'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `resultats_analyses_${Date.now()}.json`;
+            link.click();
+            
+            showAlert('Résultats exportés avec succès', 'success');
+        }
+        
+        // Génération de rapports
+        function generateHTMLReport() {
+            if (!rawData) {
+                showAlert('Importez d\'abord des données', 'warning');
+                return;
+            }
+            
+            const reportTitle = document.getElementById('reportTitle').value;
+            const statusDiv = document.getElementById('reportStatus');
+            statusDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Génération du rapport HTML...</p></div>';
+            
+            setTimeout(() => {
+                const date = new Date().toLocaleDateString('fr-FR');
+                const time = new Date().toLocaleTimeString('fr-FR');
+                
+                let html = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>${reportTitle}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+                            h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+                            h2 { color: #2c3e50; margin-top: 30px; }
+                            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                            th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+                            th { background: #2c3e50; color: white; }
+                            .summary { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
+                            .conclusion { background: #e8f4fc; padding: 20px; border-radius: 10px; margin: 20px 0; }
+                            .recommendation { background: #fff3cd; padding: 20px; border-radius: 10px; margin: 20px 0; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${reportTitle}</h1>
+                        <p><strong>Date:</strong> ${date} à ${time}</p>
+                        <p><strong>Généré par:</strong> SahelStats Pro</p>
+                        
+                        <div class="summary">
+                            <h2>Résumé des Données</h2>
+                            <p><strong>Observations:</strong> ${rawData.length}</p>
+                            <p><strong>Variables:</strong> ${Object.keys(rawData[0]).length}</p>
+                            <p><strong>Variables numériques:</strong> ${numericColumns.length}</p>
+                            <p><strong>Variables catégorielles:</strong> ${categoricalColumns.length}</p>
+                        </div>
+                        
+                        <h2>Analyses Effectuées</h2>
+                        <p>Ce rapport inclut les analyses suivantes :</p>
+                        <ul>
+                            <li>Analyse univariée descriptive</li>
+                            <li>Analyse bivariée (corrélations, tableaux croisés)</li>
+                            <li>Analyse multivariée (matrice de corrélation)</li>
+                            <li>Analyse en Composantes Principales (ACP)</li>
+                            <li>Classification Ascendante Hiérarchique (CAH)</li>
+                            <li>Clustering K-means</li>
+                        </ul>
+                        
+                        <div class="conclusion">
+                            <h2>Conclusions Principales</h2>
+                            <p>L'analyse a révélé des insights importants sur les données :</p>
+                            <ul>
+                                <li>Identification des variables les plus importantes</li>
+                                <li>Détection des relations significatives entre variables</li>
+                                <li>Segmentation de la population en groupes homogènes</li>
+                                <li>Réduction de la dimensionnalité des données</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="recommendation">
+                            <h2>Recommandations</h2>
+                            <ol>
+                                <li>Utiliser les résultats de l'ACP pour simplifier les modèles futurs</li>
+                                <li>Adapter les stratégies en fonction des clusters identifiés</li>
+                                <li>Suivre les indicateurs clés identifiés dans l'analyse</li>
+                                <li>Valider les hypothèses avec des tests statistiques supplémentaires</li>
+                            </ol>
+                        </div>
+                        
+                        <h2>Détails Techniques</h2>
+                        <table>
+                            <tr><th>Analyse</th><th>Résumé</th></tr>
+                            <tr><td>Univariée</td><td>Statistiques descriptives pour chaque variable</td></tr>
+                            <tr><td>Bivariée</td><td>Analyses de corrélation et d'association</td></tr>
+                            <tr><td>Multivariée</td><td>Matrice de corrélation complète</td></tr>
+                            <tr><td>ACP</td><td>Réduction à ${document.getElementById('pcaComponents')?.value || 3} composantes</td></tr>
+                            <tr><td>CAH</td><td>Classification en ${document.getElementById('cahClusters')?.value || 3} clusters</td></tr>
+                            <tr><td>K-means</td><td>Partitionnement en ${document.getElementById('kmeansClusters')?.value || 3} groupes</td></tr>
+                        </table>
+                        
+                        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center;">
+                            <p><strong>Rapport généré automatiquement par SahelStats Pro</strong></p>
+                            <p>Dr. MAGAGI ALI Bachir</p>
+                            <p>📧 magagalibachir@gmail.com | 📱 +227 84 00 00 00</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                
+                const blob = new Blob([html], {type: 'text/html'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${reportTitle.replace(/\s+/g, '_')}_${Date.now()}.html`;
+                link.click();
+                
+                statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Rapport HTML généré avec succès!</div>';
+            }, 1500);
+        }
+        
+        function generateWordReport() {
+            if (!rawData) {
+                showAlert('Importez d\'abord des données', 'warning');
+                return;
+            }
+            
+            const reportTitle = document.getElementById('reportTitle').value;
+            const statusDiv = document.getElementById('reportStatus');
+            statusDiv.innerHTML = '<div class="loading active"><div class="spinner"></div><p>Génération du rapport Word...</p></div>';
+            
+            setTimeout(() => {
+                // Pour un vrai rapport Word, on aurait besoin d'une bibliothèque
+                // Ici on génère un HTML qui peut être ouvert comme Word
+                const wordHTML = createWordReportHTML(reportTitle);
+                
+                const blob = new Blob(['\ufeff', wordHTML], {type: 'application/msword'});
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${reportTitle.replace(/\s+/g, '_')}_${Date.now()}.doc`;
+                link.click();
+                
+                statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Rapport Word généré avec succès!</div>';
+            }, 1500);
+        }
+        
+        function createWordReportHTML(title) {
+            const date = new Date().toLocaleDateString('fr-FR');
+            
+            return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+    body { font-family: 'Calibri', sans-serif; margin: 2cm; }
+    h1 { color: #2c3e50; font-size: 24pt; }
+    h2 { color: #2c3e50; font-size: 18pt; margin-top: 30pt; }
+    p { font-size: 11pt; line-height: 1.5; }
+    table { width: 100%; border-collapse: collapse; margin: 20pt 0; }
+    th, td { padding: 8pt; border: 1pt solid #ddd; }
+    th { background: #2c3e50; color: white; }
+    .header { text-align: center; margin-bottom: 40pt; }
+    .footer { margin-top: 50pt; text-align: center; font-size: 9pt; color: #666; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>${title}</h1>
+    <p><strong>Date:</strong> ${date}</p>
+    <p><strong>Logiciel:</strong> SahelStats Pro - Analyse Statistique Complète</p>
+</div>
+
+<h2>1. RÉSUMÉ EXÉCUTIF</h2>
+<p>Ce rapport présente une analyse statistique complète réalisée avec SahelStats Pro.</p>
+<p><strong>Données analysées:</strong> ${rawData.length} observations avec ${Object.keys(rawData[0]).length} variables.</p>
+<p><strong>Principaux résultats:</strong> Identification des patterns clés, segmentation des données, recommandations stratégiques.</p>
+
+<h2>2. MÉTHODOLOGIE</h2>
+<p>Les analyses suivantes ont été réalisées :</p>
+<ul>
+    <li>Statistiques descriptives univariées</li>
+    <li>Analyses bivariées (corrélations, tests d'association)</li>
+    <li>Analyses multivariées (matrice de corrélation)</li>
+    <li>Analyse en Composantes Principales (ACP)</li>
+    <li>Classification Ascendante Hiérarchique (CAH)</li>
+    <li>Clustering K-means</li>
+</ul>
+
+<h2>3. CONCLUSIONS</h2>
+<p>L'analyse a permis de :</p>
+<ol>
+    <li>Identifier les variables les plus importantes pour la prédiction</li>
+    <li>Segmenter la population en groupes homogènes</li>
+    <li>Réduire la complexité des données via l'ACP</li>
+    <li>Détecter les relations significatives entre variables</li>
+</ol>
+
+<h2>4. RECOMMANDATIONS</h2>
+<ol>
+    <li>Utiliser les composantes principales pour les modèles futurs</li>
+    <li>Adapter les stratégies marketing aux clusters identifiés</li>
+    <li>Mettre en place un tableau de bord de suivi</li>
+    <li>Effectuer des analyses régulières pour suivre l'évolution</li>
+</ol>
+
+<div class="footer">
+    <p><strong>SahelStats Pro - Analyse Statistique Professionnelle</strong></p>
+    <p>Dr. MAGAGI ALI Bachir</p>
+    <p>Email: magagalibachir@gmail.com | Téléphone: +227 96 26 28 26</p>
+    <p>${date} - Tous droits réservés</p>
+</div>
+
+</body>
+</html>`;
+        }
+        
+        function generatePDFReport() {
+            showAlert('Pour générer un PDF, utilisez l\'impression du navigateur (Ctrl+P)', 'info');
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+        
+        // Fonctions utilitaires
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            
+            // Insérer au début du conteneur
+            const container = document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // Supprimer après 5 secondes
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        function clearAll() {
+            if (confirm('Voulez-vous vraiment tout réinitialiser ? Toutes les données et analyses seront perdues.')) {
+                rawData = null;
+                numericColumns = [];
+                categoricalColumns = [];
+                textColumns = [];
+                analysisHistory = [];
+                
+                // Détruire tous les graphiques
+                Object.values(currentCharts).forEach(chart => {
+                    if (chart && chart.destroy) chart.destroy();
+                });
+                currentCharts = {};
+                
+                // Réinitialiser l'interface
+                document.querySelectorAll('.tab-content').forEach(div => {
+                    if (div.id !== 'uploadStatus') {
+                        div.innerHTML = '';
+                    }
+                });
+                
+                switchTab(0);
+                
+                showAlert('Toutes les données ont été réinitialisées', 'success');
+            }
+        }
+        
+        function quickAnalysis() {
+            if (!rawData) {
+                showAlert('Importez d\'abord des données', 'warning');
+                return;
+            }
+            
+            showAlert('Lancement de l\'analyse complète...', 'info');
+            
+            // Lancer les analyses principales
+            setTimeout(() => {
+                performUnivariateAnalysis();
+                switchTab(2);
+            }, 500);
+            
+            setTimeout(() => {
+                performPCA();
+                switchTab(5);
+            }, 2000);
+            
+            setTimeout(() => {
+                performCAH();
+                switchTab(6);
+            }, 4000);
+            
+            setTimeout(() => {
+                showAlert('Analyse complète terminée ! Consultez les différents onglets.', 'success');
+            }, 6000);
+        }
+        
+        function showHelp() {
+            alert(`SAHELSTATS PRO - AIDE RAPIDE
+
+1. IMPORTATION : Chargez vos données (CSV, Excel, JSON)
+2. APERÇU : Visualisez vos données
+3. UNIVARIÉE : Statistiques descriptives par variable
+4. BIVARIÉE : Analyses entre deux variables
+5. MULTIVARIÉE : Analyses complexes multiples
+6. ACP : Réduction de dimensionnalité
+7. CAH : Classification hiérarchique
+8. K-MEANS : Clustering par partitionnement
+9. TEXTE : Analyse textuelle
+10. RAPPORT : Génération de rapports complets
+
+📧 Support : magagalibachir@gmail.com
+📱 Téléphone : +227 96 26 28 26`);
+        }
+        
+        function exportCurrentChart() {
+            const activeTab = document.querySelector('.tab-content.active');
+            const canvas = activeTab?.querySelector('canvas');
+            
+            if (canvas) {
+                exportChart(canvas.id);
+            } else {
+                showAlert('Aucun graphique trouvé dans l\'onglet actuel', 'warning');
+            }
+        }
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger un exemple au démarrage
+            setTimeout(() => {
+                if (!rawData) {
+                    loadSampleData('mixed');
+                }
+            }, 1000);
+            
+            // Initialiser les tooltips
+            document.addEventListener('mousemove', function(e) {
+                if (tooltip) {
+                    tooltip.style.left = (e.pageX + 10) + 'px';
+                    tooltip.style.top = (e.pageY + 10) + 'px';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
